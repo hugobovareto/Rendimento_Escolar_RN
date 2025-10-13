@@ -1,0 +1,17 @@
+# Ambiente virtual
+venv/
+env/
+__pycache__/
+
+# Dados brutos
+*.xlsx
+*.xls
+dados_brutos/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Mas PERMITE os dados tratados
+!dados_tratados/
+!dados_tratados/*.pkl
