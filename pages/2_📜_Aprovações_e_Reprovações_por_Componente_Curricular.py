@@ -46,14 +46,16 @@ if selected_direc != st.session_state.filtro_direc:
     st.session_state.filtro_municipio = 'Todos'
     st.session_state.filtro_escola = 'Todas'
 
-# Aplicar filtro de DIREC
-if selected_direc != 'Todas':
-    df_filtered = df[df['DIREC'] == selected_direc].copy()
-else:
-    df_filtered = df.copy()
+# 2. Escolher o Município (usando cache para opções)
+@st.cache_data(ttl=300)
+def get_municipio_options(_df, direc):
+    if direc != 'Todas':
+        df_temp = _df[_df['DIREC'] == direc]
+    else:
+        df_temp = _df
+    return ['Todos'] + sorted(df_temp['MUNICÍPIO'].dropna().unique().tolist())
 
-# 2. Escolher o Município
-municipio_options = ['Todos'] + sorted(df_filtered['MUNICÍPIO'].dropna().unique().tolist())
+municipio_options = get_municipio_options(df, selected_direc)
 selected_municipio = st.sidebar.selectbox("Selecione o Município:",
                                           options=municipio_options,
                                           index=municipio_options.index(st.session_state.filtro_municipio))
@@ -63,16 +65,21 @@ if selected_municipio != st.session_state.filtro_municipio:
     st.session_state.filtro_municipio = selected_municipio
     st.session_state.filtro_escola = 'Todas'
 
-# Aplicar filtro de MUNICÍPIO
-if selected_municipio != 'Todos':
-    df_filtered = df_filtered[df_filtered['MUNICÍPIO'] == selected_municipio]
+# 3. Escolher a Escola (usando cache para opções)
+@st.cache_data(ttl=300)
+def get_escola_options(_df, direc, municipio):
+    df_temp = _df.copy()
+    if direc != 'Todas':
+        df_temp = df_temp[df_temp['DIREC'] == direc]
+    if municipio != 'Todos':
+        df_temp = df_temp[df_temp['MUNICÍPIO'] == municipio]
+    
+    df_temp['ESCOLA_FORMATADA'] = (
+        df_temp['ESCOLA'].astype(str) + " (cód. Inep: " + df_temp['INEP ESCOLA'].astype(str) + ")"
+    )
+    return ['Todas'] + sorted(df_temp['ESCOLA_FORMATADA'].dropna().unique().tolist())
 
-# 3. Escolher a Escola
-# Criar a coluna formatada combinando nome + código INEP
-df_filtered['ESCOLA_FORMATADA'] = (
-    df_filtered['ESCOLA'].astype(str) + " (cód. Inep: " + df_filtered['INEP ESCOLA'].astype(str) + ")")
-
-escola_options = ['Todas'] + sorted(df_filtered['ESCOLA_FORMATADA'].dropna().unique().tolist())
+escola_options = get_escola_options(df, selected_direc, selected_municipio)
 selected_escola_formatada = st.sidebar.selectbox("Selecione a Escola:",
                                                  options=escola_options,
                                                  index=escola_options.index(st.session_state.filtro_escola))
@@ -81,9 +88,29 @@ selected_escola_formatada = st.sidebar.selectbox("Selecione a Escola:",
 if selected_escola_formatada != st.session_state.filtro_escola:
     st.session_state.filtro_escola = selected_escola_formatada
 
-# Aplicar filtro de ESCOLA
-if selected_escola_formatada != 'Todas':
-    df_filtered = df_filtered[df_filtered['ESCOLA_FORMATADA'] == selected_escola_formatada]
+# APLICAR TODOS OS FILTROS DE UMA VEZ (COM CACHE)
+@st.cache_data(ttl=300)
+def aplicar_filtros(_df, direc, municipio, escola):
+    df_filtrado = _df.copy()
+    
+    if direc != 'Todas':
+        df_filtrado = df_filtrado[df_filtrado['DIREC'] == direc]
+    
+    if municipio != 'Todos':
+        df_filtrado = df_filtrado[df_filtrado['MUNICÍPIO'] == municipio]
+    
+    # Criar coluna formatada para escolas (apenas se necessário)
+    if escola != 'Todas' or 'ESCOLA_FORMATADA' not in df_filtrado.columns:
+        df_filtrado['ESCOLA_FORMATADA'] = (
+            df_filtrado['ESCOLA'].astype(str) + " (cód. Inep: " + df_filtrado['INEP ESCOLA'].astype(str) + ")"
+        )
+    
+    if escola != 'Todas':
+        df_filtrado = df_filtrado[df_filtrado['ESCOLA_FORMATADA'] == escola]
+    
+    return df_filtrado
+
+df_filtered = aplicar_filtros(df, selected_direc, selected_municipio, selected_escola_formatada)
 
 
 # Botão para limpar todos os filtros
@@ -91,6 +118,7 @@ if st.sidebar.button("🔄 Limpar Todos os Filtros"):
     st.session_state.filtro_direc = 'Todas'
     st.session_state.filtro_municipio = 'Todos'
     st.session_state.filtro_escola = 'Todas'
+    st.cache_data.clear()
     st.rerun()
 
 
