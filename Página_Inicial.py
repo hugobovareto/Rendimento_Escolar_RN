@@ -18,6 +18,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Limpar cache periodicamente
+if 'clear_cache' not in st.session_state:
+    st.session_state.clear_cache = True
+    st.cache_data.clear()
 
 # Carregar dados se não estiverem em cache
 if 'df' not in st.session_state:

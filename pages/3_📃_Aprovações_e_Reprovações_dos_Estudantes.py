@@ -165,7 +165,7 @@ if df_filtrado_estudante.empty:
 else:
     # Calcular situação por estudante
     # Primeiro, contar reprovações por estudante
-    reprovacoes_por_estudante = df_filtrado_estudante.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA']).agg({
+    reprovacoes_por_estudante = df_filtrado_estudante.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA'], observed=True).agg({
         'STATUS': lambda x: (x == 'Reprovado').sum()
     }).reset_index()
     reprovacoes_por_estudante.rename(columns={'STATUS': 'TOTAL_REPROVACOES'}, inplace=True)
@@ -295,7 +295,7 @@ direc_por_cpf = df_filtrado_direc.groupby('CPF PESSOA')['DIREC'].agg(
 direc_por_cpf.rename(columns={'DIREC': 'DIREC_MAIS_FREQUENTE'}, inplace=True)
 
 # Calcular reprovações por estudante
-reprovacoes_por_estudante_direc = df_filtrado_direc.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA']).agg({
+reprovacoes_por_estudante_direc = df_filtrado_direc.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA'], observed=True).agg({
     'STATUS': lambda x: (x == 'Reprovado').sum()
 }).reset_index()
 reprovacoes_por_estudante_direc.rename(columns={'STATUS': 'TOTAL_REPROVACOES'}, inplace=True)
@@ -315,7 +315,7 @@ reprovacoes_por_estudante_direc['SITUACAO_ESTUDANTE'] = reprovacoes_por_estudant
 df_estudantes_com_direc = reprovacoes_por_estudante_direc.merge(direc_por_cpf, on='CPF PESSOA', how='left')
 
 # Agrupar por DIREC mais frequente e calcular totais
-situacao_por_direc = df_estudantes_com_direc.groupby('DIREC_MAIS_FREQUENTE').agg({
+situacao_por_direc = df_estudantes_com_direc.groupby('DIREC_MAIS_FREQUENTE', observed=True).agg({
     'SITUACAO_ESTUDANTE': [
         ('Total_Estudantes', 'size'),
         ('Aprovados', lambda x: (x == 'Aprovado').sum()),
@@ -335,7 +335,7 @@ situacao_por_direc['%_Reprovados'] = (situacao_por_direc['Reprovados'] / situaca
 # Ordenar as DIRECs em ordem crescente (01ª, 02ª, 03ª, etc.)
 try:
     # Extrair o número da DIREC para ordenação numérica
-    situacao_por_direc['NUMERO_DIREC'] = situacao_por_direc['DIREC'].str.extract('(\d+)').astype(int)
+    situacao_por_direc['NUMERO_DIREC'] = situacao_por_direc['DIREC'].str.extract(r'(\d+)').astype(int)
     situacao_por_direc = situacao_por_direc.sort_values('NUMERO_DIREC')
 except:
     # Se der erro na ordenação numérica, ordena alfabeticamente
@@ -422,7 +422,7 @@ else:
         # Estilizar a tabela
         st.dataframe(
             df_display_direc,
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
             column_config={
                 'Total de Estudantes': st.column_config.NumberColumn(format='%d'),
@@ -461,7 +461,7 @@ serie_por_cpf = df_filtered.groupby('CPF PESSOA')['SÉRIE'].agg(
 serie_por_cpf.rename(columns={'SÉRIE': 'SERIE_MAIS_FREQUENTE'}, inplace=True)
 
 # Calcular reprovações por estudante (agrupando por CPF sem considerar série)
-reprovacoes_por_estudante = df_filtered.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA']).agg({
+reprovacoes_por_estudante = df_filtered.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA'], observed=True).agg({
     'STATUS': lambda x: (x == 'Reprovado').sum()
 }).reset_index()
 reprovacoes_por_estudante.rename(columns={'STATUS': 'TOTAL_REPROVACOES'}, inplace=True)
@@ -481,7 +481,7 @@ reprovacoes_por_estudante['SITUACAO_ESTUDANTE'] = reprovacoes_por_estudante.appl
 df_estudantes_com_serie = reprovacoes_por_estudante.merge(serie_por_cpf, on='CPF PESSOA', how='left')
 
 # Agrupar por série mais frequente e calcular totais
-situacao_por_serie = df_estudantes_com_serie.groupby('SERIE_MAIS_FREQUENTE').agg({
+situacao_por_serie = df_estudantes_com_serie.groupby('SERIE_MAIS_FREQUENTE', observed=True).agg({
     'SITUACAO_ESTUDANTE': [
         ('Total_Estudantes', 'size'),
         ('Aprovados', lambda x: (x == 'Aprovado').sum()),
@@ -577,7 +577,7 @@ with st.expander("📋 Ver Dados Detalhados por Série"):
     # Estilizar a tabela
     st.dataframe(
         df_display_serie,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         column_config={
             'Total de Estudantes': st.column_config.NumberColumn(format='%d'),

@@ -391,7 +391,7 @@ with st.expander("📋 Ver Dados Detalhados por DIREC"):
     # Estilizar a tabela (opcional)
     st.dataframe(
         df_display,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         column_config={
             'Total de Registros': st.column_config.NumberColumn(format='%d'),
@@ -499,7 +499,7 @@ with st.expander("📋 Ver Dados Detalhados por DIREC"):
     # Estilizar a tabela (opcional)
     st.dataframe(
         df_display,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         column_config={
             'Total de Registros': st.column_config.NumberColumn(format='%d'),
@@ -607,7 +607,7 @@ with st.expander("📋 Ver Dados Detalhados por DIREC"):
     # Estilizar a tabela (opcional)
     st.dataframe(
         df_display,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         column_config={
             'Total de Registros': st.column_config.NumberColumn(format='%d'),
@@ -706,7 +706,7 @@ try:
     # Mostrar tabela
     st.dataframe(
         df_pagina_atual,
-        use_container_width=True,
+        width='stretch',
         hide_index=True
     )
 

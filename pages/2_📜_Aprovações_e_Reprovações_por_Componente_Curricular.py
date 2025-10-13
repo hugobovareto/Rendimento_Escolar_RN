@@ -171,7 +171,7 @@ if df_com_status.empty:
     st.warning("Não há dados disponíveis para os filtros selecionados.")
 else:
     # Calcular totais por Componente Curricular
-    df_componente = df_com_status.groupby('COMPONENTE CURRICULAR').agg({
+    df_componente = df_com_status.groupby('COMPONENTE CURRICULAR', observed=True).agg({
         'STATUS': [
             ('Total_Com_Status', 'size'),
             ('Aprovados', lambda x: (x == 'Aprovado').sum()),
@@ -285,7 +285,7 @@ else:
         # Estilizar a tabela
         st.dataframe(
             df_display_componente,
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
             column_config={
                 'Total (excluídas notas não lançadas)': st.column_config.NumberColumn(format='%d'),
@@ -327,7 +327,7 @@ else:
     df_filtrado_etapa = df_filtered
 
 # Calcular médias por componente curricular (ignorando NaN)
-df_medias = df_filtrado_etapa.groupby('COMPONENTE CURRICULAR').agg({
+df_medias = df_filtrado_etapa.groupby('COMPONENTE CURRICULAR', observed=True).agg({
     'NOTA 1º BIMESTRE': lambda x: x.dropna().mean(),
     'NOTA 2º BIMESTRE': lambda x: x.dropna().mean(),
     'MEDIA_1_2_BIM': lambda x: x.dropna().mean()
@@ -444,7 +444,7 @@ else:
         # Estilizar a tabela
         st.dataframe(
             df_display_medias,
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
             column_config={
                 'Média 1º Bimestre': st.column_config.NumberColumn(format='%.2f'),
@@ -500,7 +500,7 @@ if df_filtrado_grafico.empty:
     st.warning("Não há dados disponíveis para os filtros selecionados.")
 else:
     # Calcular médias por DIREC (ignorando NaN)
-    df_medias_direc = df_filtrado_grafico.groupby('DIREC').agg({
+    df_medias_direc = df_filtrado_grafico.groupby('DIREC', observed=True).agg({
         'NOTA 1º BIMESTRE': lambda x: x.dropna().mean(),
         'NOTA 2º BIMESTRE': lambda x: x.dropna().mean(),
         'MEDIA_1_2_BIM': lambda x: x.dropna().mean()
@@ -626,7 +626,7 @@ else:
         # Estilizar a tabela
         st.dataframe(
             df_display_direc,
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
             column_config={
                 'Média 1º Bimestre': st.column_config.NumberColumn(format='%.2f'),
