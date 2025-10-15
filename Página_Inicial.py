@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 # 🔄 COMPARTILHAR DADOS ENTRE PÁGINAS
 @st.cache_data
 def carregar_dados():
-    return pd.read_parquet('dados_tratados/df_EF_EM_bncc.parquet')
+    return pd.read_parquet('dados_tratados/df_EF_EM_bncc_censo.parquet')
 
 # CONFIGURAÇÕES DA PÁGINA
 st.set_page_config(
@@ -151,7 +151,6 @@ st.markdown("""
 st.write("")
 
 st.markdown("""**Navegue pelas páginas usando a parte superior do menu lateral esquerdo:**
-- 📈 **Lançamento de Notas**
 - 📜 **Aprovações e Reprovações por Componente Curricular**
 - 📃 **Aprovações e Reprovações dos Estudantes**
 

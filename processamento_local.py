@@ -198,14 +198,54 @@ def processar_dados_brutos():
     # Executar a função de otimização
     df_EF_EM_bncc = otimizar_tipos(df_EF_EM_bncc)
 
+
+    # Filtrar linhas somente com os CPFs na base dados que foi enviada para o Censo Escolar no dia 28/05
+    # Ler o arquivo enviado para o Censo Escolar em 28/05 (em Excel)
+    df_censo = pd.read_excel(r"C:\Users\hugob\Downloads\Censo Escolar_DADOS CONSOLIDADOS.xlsx")
+
+    # Criar uma lista dos CPFs do Excel (Censo 28/05) (garantindo que sejam strings e sem espaços)
+    cpf_lista = df_censo["CPF"].astype(str).str.strip().unique()
+
+    # Filtrar o df_EF_EM_bncc mantendo apenas linhas cujo CPF PESSOA esteja na lista
+    df_EF_EM_bncc_censo = df_EF_EM_bncc[df_EF_EM_bncc["CPF PESSOA"].astype(str).isin(cpf_lista)]
+
     # Salvar o DataFrame geral, por componente, no formato .parquet com compressão snappy
-    df_EF_EM_bncc = df_EF_EM_bncc.astype({"CPF PESSOA": "string"})
-    df_EF_EM_bncc.to_parquet("df_EF_EM_bncc.parquet", compression="snappy")
+    df_EF_EM_bncc_censo = df_EF_EM_bncc_censo.astype({"CPF PESSOA": "string"})
+    df_EF_EM_bncc_censo.to_parquet("df_EF_EM_bncc_censo.parquet", compression="snappy")
+
+    # Salvar o DataFrame geral, por componente, no formato .parquet com compressão snappy
+    df_EF_EM_bncc_censo = df_EF_EM_bncc_censo.astype({"CPF PESSOA": "string"})
+    df_EF_EM_bncc_censo.to_parquet("df_EF_EM_bncc_censo.parquet", compression="snappy")
+
+    # Criar um dataframe só com os CPFs que estavam na base do Censo Escolar (em 28/05) e não estão no SigEduc atualmente
+    # Garantir que os CPFs sejam strings e padronizados (sem pontos ou traços)
+    df_censo["CPF"] = df_censo["CPF"].astype(str).str.replace(r'\D', '', regex=True).str.zfill(11)
+    df_EF_EM_bncc["CPF PESSOA"] = df_EF_EM_bncc["CPF PESSOA"].astype(str).str.replace(r'\D', '', regex=True).str.zfill(11)
+
+    # Criar o novo DataFrame apenas com CPFs AUSENTES
+    df_censo_ausentes = df_censo[~df_censo["CPF"].isin(df_EF_EM_bncc["CPF PESSOA"])]
+
+    # Salvar em Excel o DataFrame de CPFs ausentes do SigEduc atualmente
+    df_censo_ausentes.to_excel("df_censo_ausentes.xlsx", index=False)
 
 
 # Executar o código acima se rodado diretamente e não como importação em outro módulo
 if __name__ == "__main__":
     processar_dados_brutos()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
