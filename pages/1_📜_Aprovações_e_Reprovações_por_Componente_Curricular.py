@@ -15,10 +15,25 @@ st.set_page_config(page_title="Aprovações e Reprovações por Componente Curri
 
 # Carregar dados se não estiverem em cache
 if 'df' not in st.session_state:
+    st.session_state.df_componentes = carregar_dados_componentes()
+
+
+# Carregar dados se não estiverem em cache
+if 'df' not in st.session_state:
     st.session_state.df = carregar_dados_componentes()
 
 # Acessar dados
-df = st.session_state.df
+df = st.session_state.df_componentes
+
+# VERIFICAÇÃO INICIAL CRÍTICA
+if 'COMPONENTE CURRICULAR' not in df.columns:
+    st.error("🚨 ERRO GRAVE: Coluna 'COMPONENTE CURRICULAR' não encontrada no DataFrame original!")
+    st.write("Isso indica um problema com o arquivo de dados ou com o processo de carregamento.")
+    st.write(f"Colunas carregadas: {list(df.columns)}")
+    st.stop()
+
+
+
 
 # 🔄 COMPARTILHAR FILTROS ENTRE PÁGINAS
 # Inicializar session state para filtros se não existir
@@ -91,6 +106,15 @@ if selected_escola_formatada != st.session_state.filtro_escola:
 def aplicar_filtros(_df, direc, municipio, escola):
     df_filtrado = _df.copy()
     
+    # GARANTIR que as colunas essenciais estão presentes
+    colunas_essenciais = ['COMPONENTE CURRICULAR', 'Aprovados', 'Reprovados', 'ETAPA_RESUMIDA', 'SÉRIE']
+    
+    # Verificar se todas as colunas essenciais existem
+    colunas_faltantes = [col for col in colunas_essenciais if col not in df_filtrado.columns]
+    if colunas_faltantes:
+        st.error(f"❌ Colunas essenciais faltantes antes da filtragem: {colunas_faltantes}")
+        st.stop()
+    
     if direc != 'Todas':
         df_filtrado = df_filtrado[df_filtrado['DIREC'] == direc]
     
@@ -105,6 +129,13 @@ def aplicar_filtros(_df, direc, municipio, escola):
     
     if escola != 'Todas':
         df_filtrado = df_filtrado[df_filtrado['ESCOLA_FORMATADA'] == escola]
+    
+    # VERIFICAR novamente após filtragem
+    colunas_faltantes_pos = [col for col in colunas_essenciais if col not in df_filtrado.columns]
+    if colunas_faltantes_pos:
+        st.error(f"❌ Colunas essenciais removidas durante filtragem: {colunas_faltantes_pos}")
+        st.info(f"DataFrame após filtragem tem {len(df_filtrado)} linhas e {len(df_filtrado.columns)} colunas")
+        st.stop()
     
     return df_filtrado
 
@@ -140,6 +171,7 @@ st.markdown("""
 st.write("")
 st.write("")
 
+
 # =============================================================================
 # GRÁFICO 1: PERCENTUAL DE APROVAÇÃO E REPROVAÇÃO POR COMPONENTE CURRICULAR
 # =============================================================================
@@ -151,32 +183,22 @@ st.markdown(
 col_filtro1, col_filtro2 = st.columns(2)
 
 with col_filtro1:
-    # Filtro para ETAPA_RESUMIDA
-    if 'ETAPA_RESUMIDA' in df_filtered.columns:
-        etapas_options = ['Todas'] + sorted(df_filtered['ETAPA_RESUMIDA'].dropna().unique().tolist())
-        etapa_selecionada = st.selectbox(
-            "Selecione a Etapa:",
-            options=etapas_options,
-            key="filtro_etapa_componente_aprov"
-        )
-    else:
-        st.error("Coluna 'ETAPA_RESUMIDA' não encontrada.")
-        etapa_selecionada = 'Todas'
+    etapas_options = ['Todas'] + sorted(df_filtered['ETAPA_RESUMIDA'].dropna().unique().tolist())
+    etapa_selecionada = st.selectbox(
+        "Selecione a Etapa:",
+        options=etapas_options,
+        key="filtro_etapa_componente_aprov"
+    )
 
 with col_filtro2:
-    # Filtro para SÉRIE
-    if 'SÉRIE' in df_filtered.columns:
-        series_options = ['Todas'] + sorted(df_filtered['SÉRIE'].dropna().unique().tolist())
-        serie_selecionada = st.selectbox(
-            "Selecione a Série:",
-            options=series_options,
-            key="filtro_serie_componente_aprov"
-        )
-    else:
-        st.error("Coluna 'SÉRIE' não encontrada.")
-        serie_selecionada = 'Todas'
+    series_options = ['Todas'] + sorted(df_filtered['SÉRIE'].dropna().unique().tolist())
+    serie_selecionada = st.selectbox(
+        "Selecione a Série:",
+        options=series_options,
+        key="filtro_serie_componente_aprov"
+    )
 
-# Aplicar filtros de etapa e série
+# Aplicar filtros de etapa e série COM VERIFICAÇÃO
 df_filtrado_grafico1 = df_filtered.copy()
 
 if etapa_selecionada != 'Todas':
@@ -186,11 +208,15 @@ if serie_selecionada != 'Todas':
     df_filtrado_grafico1 = df_filtrado_grafico1[df_filtrado_grafico1['SÉRIE'] == serie_selecionada]
 
 
-# Calcular totais por Componente Curricular
-df_componente = df_filtrado_grafico1.groupby('COMPONENTE CURRICULAR').agg({
-    'Aprovados': 'sum',
-    'Reprovados': 'sum'
-}).reset_index()
+# Verificar se há dados após os filtros
+if df_filtrado_grafico1.empty:
+    st.warning("Não há dados disponíveis para os filtros selecionados.")
+else:
+    # Agrupamento por componente
+    df_componente = df_filtrado_grafico1.groupby('COMPONENTE CURRICULAR').agg({
+        'Aprovados': 'sum',
+        'Reprovados': 'sum'
+    }).reset_index()
 
 # Calcular totais e percentuais
 df_componente['Total'] = df_componente['Aprovados'] + df_componente['Reprovados']

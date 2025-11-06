@@ -25,10 +25,10 @@ if 'clear_cache' not in st.session_state:
 
 # Carregar dados se não estiverem em cache
 if 'df' not in st.session_state:
-    st.session_state.df = carregar_dados_estudantes()
+    st.session_state.df_estudantes = carregar_dados_estudantes()
 
 # Acessar dados
-df = st.session_state.df
+df = st.session_state.df_estudantes
 
 
 # 🔄 COMPARTILHAR FILTROS ENTRE PÁGINAS

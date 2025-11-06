@@ -308,7 +308,7 @@ def processar_dados_brutos():
     df_estudantes = df_estudantes[['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE','Aprovados','Reprovados','Total_Alunos']]
 
 
-    # Salvar os 2 dataframes em .parquet 
+    # Salvar os 2 dataframes 
     df_estudantes.to_parquet("dados_tratados/df_estudantes.parquet", index=False)
     df_componentes.to_parquet("dados_tratados/df_componentes.parquet", index=False)
     
@@ -321,8 +321,6 @@ def processar_dados_brutos():
 # Executar o código acima se rodado diretamente e não como importação em outro módulo
 if __name__ == "__main__":
     df_estudantes, df_componentes = processar_dados_brutos()
-
-
 
 
 
