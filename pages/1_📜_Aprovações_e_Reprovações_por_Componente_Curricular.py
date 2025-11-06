@@ -147,7 +147,7 @@ st.markdown(
     "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovação e Reprovação por Componente Curricular</p>",
     unsafe_allow_html=True)
 
-# Adicionar filtros para este gráfico
+# Filtros para Etapa e Série
 col_filtro1, col_filtro2 = st.columns(2)
 
 with col_filtro1:
@@ -157,7 +157,7 @@ with col_filtro1:
         etapa_selecionada = st.selectbox(
             "Selecione a Etapa:",
             options=etapas_options,
-            key="filtro_etapa_componente"
+            key="filtro_etapa_componente_aprov"
         )
     else:
         st.error("Coluna 'ETAPA_RESUMIDA' não encontrada.")
@@ -165,32 +165,28 @@ with col_filtro1:
 
 with col_filtro2:
     # Filtro para SÉRIE
-    if 'SÉRIE' in df_filtered.columns:
-        series_options = ['Todas'] + sorted(df_filtered['SÉRIE'].dropna().unique().tolist())
-        serie_selecionada = st.selectbox(
-            "Selecione a Série:",
-            options=series_options,
-            key="filtro_serie_componente"
-        )
-    else:
-        st.error("Coluna 'SÉRIE' não encontrada.")
-        serie_selecionada = 'Todas'
+    series_options = ['Todas'] + sorted(df_filtered['SÉRIE'].dropna().unique().tolist())
+    serie_selecionada = st.selectbox(
+        "Selecione a Série:",
+        options=series_options,
+        key="filtro_serie_componente_aprov"
+    )
 
-# Aplicar filtros
-df_filtrado_grafico = df_filtered.copy()
+# Aplicar filtros de etapa e série
+df_filtrado_grafico1 = df_filtered.copy()
 
 if etapa_selecionada != 'Todas':
-    df_filtrado_grafico = df_filtrado_grafico[df_filtrado_grafico['ETAPA_RESUMIDA'] == etapa_selecionada]
+    df_filtrado_grafico1 = df_filtrado_grafico1[df_filtrado_grafico1['ETAPA_RESUMIDA'] == etapa_selecionada]
 
 if serie_selecionada != 'Todas':
-    df_filtrado_grafico = df_filtrado_grafico[df_filtrado_grafico['SÉRIE'] == serie_selecionada]
+    df_filtrado_grafico1 = df_filtrado_grafico1[df_filtrado_grafico1['SÉRIE'] == serie_selecionada]
 
 # Verificar se há dados após os filtros
-if df_filtrado_grafico.empty:
+if df_filtrado_grafico1.empty:
     st.warning("Não há dados disponíveis para os filtros selecionados.")
 else:
     # Calcular totais por Componente Curricular
-    df_componente = df_filtrado_grafico.groupby('COMPONENTE CURRICULAR').agg({
+    df_componente = df_filtrado_grafico1.groupby('COMPONENTE CURRICULAR').agg({
         'Aprovados': 'sum',
         'Reprovados': 'sum'
     }).reset_index()
@@ -200,7 +196,7 @@ else:
     df_componente['%_Aprovados'] = (df_componente['Aprovados'] / df_componente['Total'] * 100).round(1)
     df_componente['%_Reprovados'] = (df_componente['Reprovados'] / df_componente['Total'] * 100).round(1)
 
-    # Ordenar por percentual de reprovação (decrescente)
+    # Ordenar os componentes por ordem alfabética
     df_componente = df_componente.sort_values('%_Reprovados', ascending=False)
 
     # Adicionar métricas resumidas
@@ -241,7 +237,7 @@ else:
 
     # Configurar layout
     fig_componente.update_layout(
-        title='Percentual de Aprovação e Reprovação por Componente Curricular',
+        title=f'Percentual de Aprovação e Reprovação por Componente Curricular',
         xaxis_title='Componente Curricular',
         yaxis_title='Percentual (%)',
         barmode='stack',
@@ -257,13 +253,8 @@ else:
         margin=dict(t=80, b=150, l=50, r=50)
     )
 
-    # Rodar labels do eixo X em 45 graus para melhor visualização
-    fig_componente.update_xaxes(
-        tickangle=-45,
-        tickmode='array',
-        tickvals=df_componente['COMPONENTE CURRICULAR'],
-        ticktext=df_componente['COMPONENTE CURRICULAR']
-    )
+    # Rodar labels do eixo X para melhor visualização
+    fig_componente.update_xaxes(tickangle=-45)
 
     # Ajustar eixo Y para ir de 0% a 100%
     fig_componente.update_yaxes(range=[0, 100])
@@ -307,12 +298,13 @@ else:
             }
         )
 
+
 st.write("")
 st.write("")
 
 
 # =============================================================================
-# GRÁFICO 2: PERCENTUAL DE APROVAÇÃO E REPROVAÇÃO POR ANO/SÉRIE ESCOLARe 
+# GRÁFICO 2: PERCENTUAL DE APROVAÇÃO E REPROVAÇÃO POR ANO/SÉRIE ESCOLAR 
 # =============================================================================
 st.markdown(
     "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovação e Reprovação por Ano/Série Escolar</p>",
@@ -788,13 +780,6 @@ else:
                 'Média 1º Semestre': st.column_config.NumberColumn(format='%.2f')
             }
         )
-
-
-
-
-
-
-
 
 
 
