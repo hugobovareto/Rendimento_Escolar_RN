@@ -165,12 +165,16 @@ with col_filtro1:
 
 with col_filtro2:
     # Filtro para SÉRIE
-    series_options = ['Todas'] + sorted(df_filtered['SÉRIE'].dropna().unique().tolist())
-    serie_selecionada = st.selectbox(
-        "Selecione a Série:",
-        options=series_options,
-        key="filtro_serie_componente_aprov"
-    )
+    if 'SÉRIE' in df_filtered.columns:
+        series_options = ['Todas'] + sorted(df_filtered['SÉRIE'].dropna().unique().tolist())
+        serie_selecionada = st.selectbox(
+            "Selecione a Série:",
+            options=series_options,
+            key="filtro_serie_componente_aprov"
+        )
+    else:
+        st.error("Coluna 'SÉRIE' não encontrada.")
+        serie_selecionada = 'Todas'
 
 # Aplicar filtros de etapa e série
 df_filtrado_grafico1 = df_filtered.copy()
@@ -181,24 +185,26 @@ if etapa_selecionada != 'Todas':
 if serie_selecionada != 'Todas':
     df_filtrado_grafico1 = df_filtrado_grafico1[df_filtrado_grafico1['SÉRIE'] == serie_selecionada]
 
+
+# Calcular totais por Componente Curricular
+df_componente = df_filtrado_grafico1.groupby('COMPONENTE CURRICULAR').agg({
+    'Aprovados': 'sum',
+    'Reprovados': 'sum'
+}).reset_index()
+
+# Calcular totais e percentuais
+df_componente['Total'] = df_componente['Aprovados'] + df_componente['Reprovados']
+df_componente['%_Aprovados'] = (df_componente['Aprovados'] / df_componente['Total'] * 100).round(1)
+df_componente['%_Reprovados'] = (df_componente['Reprovados'] / df_componente['Total'] * 100).round(1)
+
+# Ordenar os componentes por ordem alfabética
+df_componente = df_componente.sort_values('%_Reprovados', ascending=False)
+
+
 # Verificar se há dados após os filtros
 if df_filtrado_grafico1.empty:
     st.warning("Não há dados disponíveis para os filtros selecionados.")
 else:
-    # Calcular totais por Componente Curricular
-    df_componente = df_filtrado_grafico1.groupby('COMPONENTE CURRICULAR').agg({
-        'Aprovados': 'sum',
-        'Reprovados': 'sum'
-    }).reset_index()
-
-    # Calcular totais e percentuais
-    df_componente['Total'] = df_componente['Aprovados'] + df_componente['Reprovados']
-    df_componente['%_Aprovados'] = (df_componente['Aprovados'] / df_componente['Total'] * 100).round(1)
-    df_componente['%_Reprovados'] = (df_componente['Reprovados'] / df_componente['Total'] * 100).round(1)
-
-    # Ordenar os componentes por ordem alfabética
-    df_componente = df_componente.sort_values('%_Reprovados', ascending=False)
-
     # Adicionar métricas resumidas
     col1, col2 = st.columns(2)
 
