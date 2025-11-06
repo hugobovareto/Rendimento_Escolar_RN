@@ -7,8 +7,8 @@ import plotly.graph_objects as go
 
 # 🔄 COMPARTILHAR DADOS ENTRE PÁGINAS
 @st.cache_data
-def carregar_dados():
-    return pd.read_parquet('dados_tratados/df_EF_EM_bncc_censo.parquet')
+def carregar_dados_estudantes():
+    return pd.read_parquet('dados_tratados/df_estudantes.parquet')
 
 # CONFIGURAÇÕES DA PÁGINA
 st.set_page_config(
@@ -25,7 +25,7 @@ if 'clear_cache' not in st.session_state:
 
 # Carregar dados se não estiverem em cache
 if 'df' not in st.session_state:
-    st.session_state.df = carregar_dados()
+    st.session_state.df = carregar_dados_estudantes()
 
 # Acessar dados
 df = st.session_state.df
@@ -145,7 +145,7 @@ st.markdown("""
 
 st.write("")
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 10/10/2025.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 31/10/2025.
 """)
 
 st.write("")

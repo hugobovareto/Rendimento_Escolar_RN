@@ -7,15 +7,15 @@ import plotly.graph_objects as go
 
 # 🔄 COMPARTILHAR DADOS ENTRE PÁGINAS
 @st.cache_data
-def carregar_dados():
-    return pd.read_parquet('dados_tratados/df_EF_EM_bncc_censo.parquet')
+def carregar_dados_estudantes():
+     return pd.read_parquet('dados_tratados/df_estudantes.parquet')
 
 # CONFIGURAÇÕES DA PÁGINA
 st.set_page_config(page_title="Aprovações e Reprovações dos Estudantes", layout="wide")
 
 # Carregar dados se não estiverem em cache
 if 'df' not in st.session_state:
-    st.session_state.df = carregar_dados()
+    st.session_state.df = carregar_dados_estudantes()
 
 # Acessar dados
 df = st.session_state.df
@@ -133,7 +133,7 @@ st.write("")
 st.title("📃 Aprovações e Reprovações dos Estudantes")
 
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 10/10/2025.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 31/10/2025.
 """)
 
 st.write("")
@@ -148,6 +148,7 @@ st.markdown("""
 st.write("")
 
 
+# GRÁFICO 1: APROVAÇÕES E REPROVAÇÕES GERAL
 # GERAL: APROVAÇÕES E REPROVAÇÕES
 # Adicionar filtros para esta análise
 col1, col2 = st.columns(2)
@@ -191,69 +192,49 @@ if serie_selecionada != 'Todas':
 if df_filtrado_estudante.empty:
     st.warning("Não há dados disponíveis para os filtros selecionados.")
 else:
-    # Calcular situação por estudante
-    # Primeiro, contar reprovações por estudante
-    reprovacoes_por_estudante = df_filtrado_estudante.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA'], observed=True).agg({
-        'STATUS': lambda x: (x == 'Reprovado').sum()
-    }).reset_index()
-    reprovacoes_por_estudante.rename(columns={'STATUS': 'TOTAL_REPROVACOES'}, inplace=True)
-
-    # Aplicar regras de aprovação/reprovação
-    def definir_situacao_estudante(row):
-        if row['ETAPA_RESUMIDA'] == "Ens. Fund. - Anos Finais":
-            return 'Reprovado' if row['TOTAL_REPROVACOES'] >= 4 else 'Aprovado'
-        elif row['ETAPA_RESUMIDA'] == "Ensino Médio":
-            return 'Reprovado' if row['TOTAL_REPROVACOES'] >= 7 else 'Aprovado'
-        else:
-            return 'Indefinido'
-
-    reprovacoes_por_estudante['SITUACAO_ESTUDANTE'] = reprovacoes_por_estudante.apply(definir_situacao_estudante, axis=1)
-
-    # Contar total de estudantes por situação
-    situacao_counts = reprovacoes_por_estudante['SITUACAO_ESTUDANTE'].value_counts()
     
-    # Calcular totais e percentuais
-    total_estudantes = len(reprovacoes_por_estudante)
-    aprovados = situacao_counts.get('Aprovado', 0)
-    reprovados = situacao_counts.get('Reprovado', 0)
-    
-    # Correção do erro de arredondamento
-    percentual_aprovados = round(aprovados / total_estudantes * 100, 2) if total_estudantes > 0 else 0
-    percentual_reprovados = round(reprovados / total_estudantes * 100, 2) if total_estudantes > 0 else 0
+    # CALCULAR TOTAIS DIRETAMENTE DO DATAFRAME AGRUPADO
+    total_aprovados = df_filtrado_estudante['Aprovados'].sum()
+    total_reprovados = df_filtrado_estudante['Reprovados'].sum()
+    total_estudantes = total_aprovados + total_reprovados
+
+    # Calcular percentuais
+    percentual_aprovados = round(total_aprovados / total_estudantes * 100, 2) if total_estudantes > 0 else 0
+    percentual_reprovados = round(total_reprovados / total_estudantes * 100, 2) if total_estudantes > 0 else 0
 
     # Mostrar métricas
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
-        st.metric("Total de Estudantes", f"{total_estudantes:,}")
-    
+        st.metric("Total de Estudantes", f"{total_estudantes:,.0f}")
+
     with col2:
-        st.metric("Aprovados", f"{aprovados:,}")
-    
+        st.metric("Aprovados", f"{total_aprovados:,}")
+
     with col3:
-        st.metric("Reprovados", f"{reprovados:,}")
-    
+        st.metric("Reprovados", f"{total_reprovados:,}")
+
     with col4:
         st.metric("Taxa de Aprovação", f"{percentual_aprovados}%")
 
     # Criar gráfico de pizza
     fig_pizza = go.Figure()
-    
+
     fig_pizza.add_trace(go.Pie(
         labels=['Aprovados', 'Reprovados'],
-        values=[aprovados, reprovados],
+        values=[total_aprovados, total_reprovados],
         hole=0.4,
         marker=dict(colors=['#2e7d32', '#c62828']),
         textinfo='percent+label+value',
         hovertemplate='<b>%{label}</b><br>Quantidade: %{value}<br>Percentual: %{percent}<extra></extra>'
     ))
-    
+
     fig_pizza.update_layout(
         title='Distribuição de Aprovações e Reprovações',
         height=500,
         showlegend=False
     )
-    
+
     st.plotly_chart(fig_pizza, use_container_width=True)
 
     # Informação sobre filtros aplicados
@@ -262,7 +243,7 @@ else:
         info_filtros.append(f"Etapa: {etapa_selecionada}")
     if serie_selecionada != 'Todas':
         info_filtros.append(f"Série: {serie_selecionada}")
-    
+
     if info_filtros:
         st.info(f"💡 **Filtros aplicados:** {', '.join(info_filtros)}")
     else:
@@ -271,11 +252,12 @@ else:
 
 st.write("")
 st.write("")
-# Percentual de Aprovações e Reprovações por DIREC (com filtro de etapa e série)
+
+# GRÁFICO 2: PERCENTUAL DE APROVAÇÕES E REPROVAÇÕES POR DIREC
 st.markdown(
     "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovações e Reprovações por DIREC</p>",
-    unsafe_allow_html=True)
-
+    unsafe_allow_html=True
+)
 
 # Adicionar filtros para este gráfico
 col_filtro1, col_filtro2 = st.columns(2)
@@ -315,59 +297,19 @@ if etapa_selecionada != 'Todas':
 if serie_selecionada != 'Todas':
     df_filtrado_direc = df_filtrado_direc[df_filtrado_direc['SÉRIE'] == serie_selecionada]
 
-# Encontrar a DIREC mais frequente para cada CPF (para quando um único CPF tiver múltiplas DIRECs associadas)
-# Para estudantes com múltiplas DIRECs associadas ao mesmo CPF, foi utilizada a DIREC mais frequente.
-direc_por_cpf = df_filtrado_direc.groupby('CPF PESSOA')['DIREC'].agg(
-    lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0]
-).reset_index()
-direc_por_cpf.rename(columns={'DIREC': 'DIREC_MAIS_FREQUENTE'}, inplace=True)
-
-# Calcular reprovações por estudante
-reprovacoes_por_estudante_direc = df_filtrado_direc.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA'], observed=True).agg({
-    'STATUS': lambda x: (x == 'Reprovado').sum()
+# Agrupar por DIREC e calcular totais
+situacao_por_direc = df_filtrado_direc.groupby('DIREC').agg({
+    'Aprovados': 'sum',
+    'Reprovados': 'sum'
 }).reset_index()
-reprovacoes_por_estudante_direc.rename(columns={'STATUS': 'TOTAL_REPROVACOES'}, inplace=True)
 
-# Aplicar regras de aprovação/reprovação
-def definir_situacao_estudante_direc(row):
-    if row['ETAPA_RESUMIDA'] == "Ens. Fund. - Anos Finais":
-        return 'Reprovado' if row['TOTAL_REPROVACOES'] >= 4 else 'Aprovado'
-    elif row['ETAPA_RESUMIDA'] == "Ensino Médio":
-        return 'Reprovado' if row['TOTAL_REPROVACOES'] >= 7 else 'Aprovado'
-    else:
-        return 'Indefinido'
-
-reprovacoes_por_estudante_direc['SITUACAO_ESTUDANTE'] = reprovacoes_por_estudante_direc.apply(definir_situacao_estudante_direc, axis=1)
-
-# Juntar com a DIREC mais frequente
-df_estudantes_com_direc = reprovacoes_por_estudante_direc.merge(direc_por_cpf, on='CPF PESSOA', how='left')
-
-# Agrupar por DIREC mais frequente e calcular totais
-situacao_por_direc = df_estudantes_com_direc.groupby('DIREC_MAIS_FREQUENTE', observed=True).agg({
-    'SITUACAO_ESTUDANTE': [
-        ('Total_Estudantes', 'size'),
-        ('Aprovados', lambda x: (x == 'Aprovado').sum()),
-        ('Reprovados', lambda x: (x == 'Reprovado').sum())
-    ]
-}).round(0)
-
-# Reformatar o DataFrame
-situacao_por_direc.columns = situacao_por_direc.columns.droplevel(0)
-situacao_por_direc = situacao_por_direc.reset_index()
-situacao_por_direc.rename(columns={'DIREC_MAIS_FREQUENTE': 'DIREC'}, inplace=True)
-
-# Calcular percentuais
+# Calcular totais e percentuais
+situacao_por_direc['Total_Estudantes'] = situacao_por_direc['Aprovados'] + situacao_por_direc['Reprovados']
 situacao_por_direc['%_Aprovados'] = (situacao_por_direc['Aprovados'] / situacao_por_direc['Total_Estudantes'] * 100).round(1)
 situacao_por_direc['%_Reprovados'] = (situacao_por_direc['Reprovados'] / situacao_por_direc['Total_Estudantes'] * 100).round(1)
 
-# Ordenar as DIRECs em ordem crescente (01ª, 02ª, 03ª, etc.)
-try:
-    # Extrair o número da DIREC para ordenação numérica
-    situacao_por_direc['NUMERO_DIREC'] = situacao_por_direc['DIREC'].str.extract(r'(\d+)').astype(int)
-    situacao_por_direc = situacao_por_direc.sort_values('NUMERO_DIREC')
-except:
-    # Se der erro na ordenação numérica, ordena alfabeticamente
-    situacao_por_direc = situacao_por_direc.sort_values('DIREC')
+# Ordenar as DIRECs em ordem decrescente de reprovações (maiores reprovações primeiro)
+situacao_por_direc = situacao_por_direc.sort_values('%_Reprovados', ascending=False)
 
 # Truncar nomes das DIRECs para 9 caracteres
 situacao_por_direc['DIREC_Truncada'] = situacao_por_direc['DIREC'].astype(str).str.slice(0, 9)
@@ -470,59 +412,24 @@ else:
         st.info(f"💡 **Filtros aplicados:** {', '.join(info_filtros)}")
     else:
         st.info("💡 **Filtros aplicados:** Todas as etapas e séries")
-    
-
 
 st.write("")
 st.write("")
-# Percentual de Aprovações e Reprovações por Ano/ Série Escolar (sem filtro, pois faz sentido só o filtro de DIREC que já tem na lateral)
+
+# GRÁFICO 3: PERCENTUAL DE APROVAÇÕES E REPROVAÇÕES POR ANO/SÉRIE ESCOLAR
 st.markdown(
-    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovações e Reprovações por Ano/ Série Escolar</p>",
-    unsafe_allow_html=True)
+    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovações e Reprovações por Ano/Série Escolar</p>",
+    unsafe_allow_html=True
+)
 
-
-# Encontrar a série mais frequente para cada CPF (para quando um único CPF tiver múltiplas séries associadas)
-# Para estudantes com múltiplas DIRECs associadas ao mesmo CPF, foi utilizada a DIREC mais frequente.
-serie_por_cpf = df_filtered.groupby('CPF PESSOA')['SÉRIE'].agg(
-    lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0]
-).reset_index()
-serie_por_cpf.rename(columns={'SÉRIE': 'SERIE_MAIS_FREQUENTE'}, inplace=True)
-
-# Calcular reprovações por estudante (agrupando por CPF sem considerar série)
-reprovacoes_por_estudante = df_filtered.groupby(['CPF PESSOA', 'ETAPA_RESUMIDA'], observed=True).agg({
-    'STATUS': lambda x: (x == 'Reprovado').sum()
+# Agrupar por Série e calcular totais
+situacao_por_serie = df_filtered.groupby('SÉRIE').agg({
+    'Aprovados': 'sum',
+    'Reprovados': 'sum'
 }).reset_index()
-reprovacoes_por_estudante.rename(columns={'STATUS': 'TOTAL_REPROVACOES'}, inplace=True)
 
-# Aplicar regras de aprovação/reprovação
-def definir_situacao_estudante(row):
-    if row['ETAPA_RESUMIDA'] == "Ens. Fund. - Anos Finais":
-        return 'Reprovado' if row['TOTAL_REPROVACOES'] >= 4 else 'Aprovado'
-    elif row['ETAPA_RESUMIDA'] == "Ensino Médio":
-        return 'Reprovado' if row['TOTAL_REPROVACOES'] >= 7 else 'Aprovado'
-    else:
-        return 'Indefinido'
-
-reprovacoes_por_estudante['SITUACAO_ESTUDANTE'] = reprovacoes_por_estudante.apply(definir_situacao_estudante, axis=1)
-
-# Juntar com a série mais frequente
-df_estudantes_com_serie = reprovacoes_por_estudante.merge(serie_por_cpf, on='CPF PESSOA', how='left')
-
-# Agrupar por série mais frequente e calcular totais
-situacao_por_serie = df_estudantes_com_serie.groupby('SERIE_MAIS_FREQUENTE', observed=True).agg({
-    'SITUACAO_ESTUDANTE': [
-        ('Total_Estudantes', 'size'),
-        ('Aprovados', lambda x: (x == 'Aprovado').sum()),
-        ('Reprovados', lambda x: (x == 'Reprovado').sum())
-    ]
-}).round(0)
-
-# Reformatar o DataFrame
-situacao_por_serie.columns = situacao_por_serie.columns.droplevel(0)
-situacao_por_serie = situacao_por_serie.reset_index()
-situacao_por_serie.rename(columns={'SERIE_MAIS_FREQUENTE': 'SÉRIE'}, inplace=True)
-
-# Calcular percentuais
+# Calcular totais e percentuais
+situacao_por_serie['Total_Estudantes'] = situacao_por_serie['Aprovados'] + situacao_por_serie['Reprovados']
 situacao_por_serie['%_Aprovados'] = (situacao_por_serie['Aprovados'] / situacao_por_serie['Total_Estudantes'] * 100).round(1)
 situacao_por_serie['%_Reprovados'] = (situacao_por_serie['Reprovados'] / situacao_por_serie['Total_Estudantes'] * 100).round(1)
 
@@ -536,7 +443,6 @@ try:
     situacao_por_serie = situacao_por_serie.sort_values('SERIE_ORDENADA')
 except:
     situacao_por_serie = situacao_por_serie.sort_values('SÉRIE')
-
 
 # Criar gráfico de barras empilhadas
 fig_serie = go.Figure()
@@ -613,25 +519,6 @@ with st.expander("📋 Ver Dados Detalhados por Série"):
             'Reprovados': st.column_config.NumberColumn(format='%d')
         }
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
