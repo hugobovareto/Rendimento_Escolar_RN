@@ -133,7 +133,7 @@ st.write("")
 st.title("📃 Aprovações e Reprovações dos Estudantes")
 
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 31/10/2025.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 07/11/2025.
 """)
 
 st.write("")
