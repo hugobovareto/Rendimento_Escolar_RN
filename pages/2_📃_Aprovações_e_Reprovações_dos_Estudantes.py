@@ -139,10 +139,10 @@ st.markdown("""
 st.write("")
 
 st.markdown("""
-            O estudante é considerado reprovado se possui média do 1º semestre inferior a 6.0 de acordo com a etapa de ensino:
+            O estudante é considerado reprovado se possui média inferior a 6.0 de acordo com a etapa de ensino:
 - **Ensino Fundamental:** 4 ou mais componentes curriculares reprovados.
 - **Ensino Médio:** 7 ou mais componentes curriculares reprovados.
-            \n São consideradas as notas para o 1º e 2º bimestres de 2025. Caso alguma nota ainda não tenho sido lançada, a média é feita considerando somente as notas disponíveis.
+            \n São consideradas as notas para o 1º, 2º e 3º bimestres de 2025. Caso alguma nota ainda não tenho sido lançada, a média é feita considerando somente as notas disponíveis.
             """)
 
 st.write("")

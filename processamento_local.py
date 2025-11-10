@@ -105,23 +105,23 @@ def processar_dados_brutos():
 
     df_EF_EM_bncc['ETAPA_RESUMIDA'] = df_EF_EM_bncc['SÉRIE'].map(mapeamento_etapa)
 
-    # Criar coluna com nota final média do 1º semestre, considerando as notas do 1º e 2º bimestres:
+    # Criar coluna com nota final média, considerando as notas do 1º, 2º e 3º bimestres:
     # (ignora os valores NaN e fazem a média somente com os valores presentes. Se só tiver 1 nota disponível, a média será essa nota)
     '''
     Se as duas colunas têm valores → média das duas.
     Se apenas uma tem valor → retorna esse valor.
     Se ambas são NaN → retorna NaN.
     '''
-    df_EF_EM_bncc['MEDIA_1_2_BIM'] = df_EF_EM_bncc[['NOTA 1º BIMESTRE','NOTA 2º BIMESTRE']].mean(axis=1, skipna=True)
+                                        ###### MODIFICAR AQUI QUANDO TIVER MAIS NOTAS LANÇADAS ######
+    df_EF_EM_bncc['MEDIA_NOTAS'] = df_EF_EM_bncc[['NOTA 1º BIMESTRE','NOTA 2º BIMESTRE', 'NOTA 3º BIMESTRE']].mean(axis=1, skipna=True)
 
     # Criar uma coluna para Aprovado ou Reprovado por componente (reprovação caso a média seja menor que 6)
-                                    ###### MODIFICAR AQUI QUANDO TIVER MAIS NOTAS LANÇADAS ######
     # (sem nota caso os dois bimestres sejam NaN)
     df_EF_EM_bncc['STATUS'] = np.where(
-        df_EF_EM_bncc['MEDIA_1_2_BIM'].isna(),           # 1️⃣ caso: sem média
+        df_EF_EM_bncc['MEDIA_NOTAS'].isna(),           # 1️⃣ caso: sem média
         'Sem nota',
         np.where(
-            df_EF_EM_bncc['MEDIA_1_2_BIM'] >= 6,         # 2️⃣ caso: média suficiente
+            df_EF_EM_bncc['MEDIA_NOTAS'] >= 6,         # 2️⃣ caso: média suficiente
             'Aprovado',
             'Reprovado'                                  # 3️⃣ caso: média < 6
         )
@@ -215,7 +215,7 @@ def processar_dados_brutos():
 
     # colunas usadas para o df_compnoentes
     cols_componentes = ['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE','COMPONENTE CURRICULAR',
-            'STATUS','NOTA 1º BIMESTRE','NOTA 2º BIMESTRE','MEDIA_1_2_BIM']
+            'STATUS','NOTA 1º BIMESTRE','NOTA 2º BIMESTRE', 'NOTA 3º BIMESTRE', 'MEDIA_NOTAS']
 
     df2_componentes = df_EF_EM_bncc_censo[cols_componentes].copy()
 
@@ -231,7 +231,8 @@ def processar_dados_brutos():
     # garantir notas numéricas
     df2_componentes['NOTA 1º BIMESTRE'] = pd.to_numeric(df2_componentes['NOTA 1º BIMESTRE'], errors='coerce')
     df2_componentes['NOTA 2º BIMESTRE'] = pd.to_numeric(df2_componentes['NOTA 2º BIMESTRE'], errors='coerce')
-    df2_componentes['MEDIA_1_2_BIM'] = pd.to_numeric(df2_componentes['MEDIA_1_2_BIM'], errors='coerce')
+    df2_componentes['NOTA 3º BIMESTRE'] = pd.to_numeric(df2_componentes['NOTA 3º BIMESTRE'], errors='coerce')
+    df2_componentes['MEDIA_NOTAS'] = pd.to_numeric(df2_componentes['MEDIA_NOTAS'], errors='coerce')
 
     # Agrupar e agregar para fazer o df_componentes
     df_componentes = (
@@ -242,7 +243,8 @@ def processar_dados_brutos():
             Reprovados=('is_reprovado', 'sum'),
             NOTA_1_BIMESTRE=('NOTA 1º BIMESTRE', 'mean'),
             NOTA_2_BIMESTRE=('NOTA 2º BIMESTRE', 'mean'),
-            MEDIA_1_2_BIM=('MEDIA_1_2_BIM', 'mean')
+            NOTA_3_BIMESTRE=('NOTA 3º BIMESTRE', 'mean'),
+            MEDIA_NOTAS=('MEDIA_NOTAS', 'mean')
         )
         .reset_index()
     )
