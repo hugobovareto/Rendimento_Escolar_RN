@@ -139,7 +139,7 @@ st.image("images/logos.png", width=1700)
 st.title("🎓 Rendimento Escolar - Rede Estadual RN")
 
 st.markdown("""
-            Esta aplicação apresenta informações sobre a aprovação, reprovação e rendimento escolar dos estudantes considerando as notas já lançadas para o  1º e 2º bimestres de 2025.
+            Esta aplicação apresenta informações sobre a aprovação, reprovação e rendimento escolar dos estudantes considerando as notas já lançadas para o  1º, 2º e 3º bimestres de 2025.
             \n Os dados são dos estudantes dos **Anos Finais do Ensino Fundamental e do Ensino Médio**, somente para os **componentes curriculares que fazem parte da Base Nacional Comum Curricular (BNCC)**.
             """)
 
