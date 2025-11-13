@@ -201,7 +201,7 @@ def processar_dados_brutos():
 
     # Filtrar linhas somente com os CPFs na base dados que foi enviada para o Censo Escolar no dia 28/05
     # Ler o arquivo enviado para o Censo Escolar em 28/05 (em Excel)
-    df_censo = pd.read_excel(r"C:\Users\hugob\Downloads\20250528_Censo Escolar_DADOS CONSOLIDADOS.xlsx")
+    df_censo = pd.read_excel(r"C:\Users\hugob\Downloads\DADOS EDUCACENSO FINAL_RETIFICADO.xlsx")
 
     # Criar uma lista dos CPFs do Excel (Censo 28/05) (garantindo que sejam strings e sem espaços)
     cpf_lista = df_censo["CPF"].astype(str).str.strip().unique()
