@@ -11,7 +11,7 @@ def carregar_dados_estudantes():
      return pd.read_parquet('dados_tratados/df_estudantes.parquet')
 
 # CONFIGURAÇÕES DA PÁGINA
-st.set_page_config(page_title="Aprovações e Reprovações dos Estudantes", layout="wide")
+st.set_page_config(page_title="Aprovações e Risco de Reprovações dos Estudantes", layout="wide")
 
 # Carregar dados se não estiverem em cache
 if 'df' not in st.session_state:
@@ -124,32 +124,32 @@ if st.sidebar.button("🔄 Limpar Todos os Filtros"):
 
 
 # CONFIGURAÇÕES DA PÁGINA
-                                                    # 3. Aprovação e Reprovação por estudante
+                                                    # 3. Aprovação e Risco de Reprovação por estudante
 # Imagem do cabeçalho
 st.image("images/logos.png", width=1700)
 
 st.write("")
 
-st.title("📃 Aprovações e Reprovações dos Estudantes")
+st.title("📃 Aprovações e Risco de Reprovações dos Estudantes")
 
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 07/11/2025.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 28/11/2025.
 """)
 
 st.write("")
 
 st.markdown("""
-            O estudante é considerado reprovado se possui média inferior a 6.0 de acordo com a etapa de ensino:
-- **Ensino Fundamental:** 4 ou mais componentes curriculares reprovados.
-- **Ensino Médio:** 7 ou mais componentes curriculares reprovados.
+            O estudante é considerado em risco de reprovação se possui média inferior a 6.0 de acordo com a etapa de ensino:
+- **Ensino Fundamental:** 4 ou mais componentes curriculares com nota inferior a 6.0.
+- **Ensino Médio:** 7 ou mais componentes curriculares com nota inferior a 6.0.
             \n São consideradas as notas para o 1º, 2º e 3º bimestres de 2025. Caso alguma nota ainda não tenho sido lançada, a média é feita considerando somente as notas disponíveis.
             """)
 
 st.write("")
 
 
-# GRÁFICO 1: APROVAÇÕES E REPROVAÇÕES GERAL
-# GERAL: APROVAÇÕES E REPROVAÇÕES
+# GRÁFICO 1: APROVAÇÕES E RISCO DE REPROVAÇÕES GERAL
+# GERAL: APROVAÇÕES E RISCO DE REPROVAÇÕES
 # Adicionar filtros para esta análise
 col1, col2 = st.columns(2)
 
@@ -212,7 +212,7 @@ else:
         st.metric("Aprovados", f"{total_aprovados:,}")
 
     with col3:
-        st.metric("Reprovados", f"{total_reprovados:,}")
+        st.metric("Risco de Reprovação", f"{total_reprovados:,}")
 
     with col4:
         st.metric("Taxa de Aprovação", f"{percentual_aprovados}%")
@@ -221,7 +221,7 @@ else:
     fig_pizza = go.Figure()
 
     fig_pizza.add_trace(go.Pie(
-        labels=['Aprovados', 'Reprovados'],
+        labels=['Aprovados', 'Risco de Reprovação'],
         values=[total_aprovados, total_reprovados],
         hole=0.4,
         marker=dict(colors=['#2e7d32', '#c62828']),
@@ -230,7 +230,7 @@ else:
     ))
 
     fig_pizza.update_layout(
-        title='Distribuição de Aprovações e Reprovações',
+        title='Distribuição de Aprovações e Risco de Reprovações',
         height=500,
         showlegend=False
     )
@@ -253,9 +253,9 @@ else:
 st.write("")
 st.write("")
 
-# GRÁFICO 2: PERCENTUAL DE APROVAÇÕES E REPROVAÇÕES POR DIREC
+# GRÁFICO 2: PERCENTUAL DE APROVAÇÕES E RISCO DE REPROVAÇÕES POR DIREC
 st.markdown(
-    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovações e Reprovações por DIREC</p>",
+    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovações e Risco de Reprovações por DIREC</p>",
     unsafe_allow_html=True
 )
 
@@ -335,19 +335,19 @@ else:
 
     # Barra de reprovados (vermelho)
     fig_direc.add_trace(go.Bar(
-        name='❌ Reprovados',
+        name='❌ Risco de Reprovação',
         x=situacao_por_direc['DIREC_Truncada'],
         y=situacao_por_direc['%_Reprovados'],
         marker=dict(color='#c62828'),
         text=situacao_por_direc['%_Reprovados'].astype(str) + '%',
         textposition='inside',
-        hovertemplate='<b>%{customdata}</b><br>Reprovados: %{y}%<br>Total: ' + situacao_por_direc['Reprovados'].astype(str) + '<extra></extra>',
+        hovertemplate='<b>%{customdata}</b><br>Risco de Reprovação: %{y}%<br>Total: ' + situacao_por_direc['Reprovados'].astype(str) + '<extra></extra>',
         customdata=situacao_por_direc['DIREC']
     ))
 
     # Configurar layout
     fig_direc.update_layout(
-        title='Percentual de Aprovações e Reprovações por DIREC',
+        title='Percentual de Aprovações e Risco de Reprovações por DIREC',
         xaxis_title='DIREC',
         yaxis_title='Percentual (%)',
         barmode='stack',
@@ -384,9 +384,9 @@ else:
             'DIREC': situacao_por_direc['DIREC'],
             'Total de Estudantes': situacao_por_direc['Total_Estudantes'],
             'Aprovados': situacao_por_direc['Aprovados'],
-            'Reprovados': situacao_por_direc['Reprovados'],
+            'Risco de Reprovação': situacao_por_direc['Reprovados'],
             '% Aprovados': situacao_por_direc['%_Aprovados'].astype(str) + ' %',
-            '% Reprovados': situacao_por_direc['%_Reprovados'].astype(str) + ' %'
+            '% Risco de Reprovação': situacao_por_direc['%_Reprovados'].astype(str) + ' %'
         })
         
         # Estilizar a tabela
@@ -397,7 +397,7 @@ else:
             column_config={
                 'Total de Estudantes': st.column_config.NumberColumn(format='%d'),
                 'Aprovados': st.column_config.NumberColumn(format='%d'),
-                'Reprovados': st.column_config.NumberColumn(format='%d')
+                'Risco de Reprovação': st.column_config.NumberColumn(format='%d')
             }
         )
 
@@ -416,9 +416,9 @@ else:
 st.write("")
 st.write("")
 
-# GRÁFICO 3: PERCENTUAL DE APROVAÇÕES E REPROVAÇÕES POR ANO/SÉRIE ESCOLAR
+# GRÁFICO 3: PERCENTUAL DE APROVAÇÕES E RISCO DE REPROVAÇÕES POR ANO/SÉRIE ESCOLAR
 st.markdown(
-    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovações e Reprovações por Ano/Série Escolar</p>",
+    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovações e Risco de Reprovações por Ano/Série Escolar</p>",
     unsafe_allow_html=True
 )
 
@@ -460,18 +460,18 @@ fig_serie.add_trace(go.Bar(
 
 # Barra de reprovados (vermelho)
 fig_serie.add_trace(go.Bar(
-    name='❌ Reprovados',
+    name='❌ Risco de Reprovação',
     x=situacao_por_serie['SÉRIE'],
     y=situacao_por_serie['%_Reprovados'],
     marker=dict(color='#c62828'),
     text=situacao_por_serie['%_Reprovados'].astype(str) + '%',
     textposition='inside',
-    hovertemplate='<b>%{x}</b><br>Reprovados: %{y}%<br>Total: ' + situacao_por_serie['Reprovados'].astype(str) + '<extra></extra>'
+    hovertemplate='<b>%{x}</b><br>Risco de Reprovação: %{y}%<br>Total: ' + situacao_por_serie['Reprovados'].astype(str) + '<extra></extra>'
 ))
 
 # Configurar layout
 fig_serie.update_layout(
-    title='Percentual de Aprovações e Reprovações por Série',
+    title='Percentual de Aprovações e Risco de Reprovações por Série',
     xaxis_title='Série',
     yaxis_title='Percentual (%)',
     barmode='stack',
@@ -503,9 +503,9 @@ with st.expander("📋 Ver Dados Detalhados por Série"):
         'Série': situacao_por_serie['SÉRIE'],
         'Total de Estudantes': situacao_por_serie['Total_Estudantes'],
         'Aprovados': situacao_por_serie['Aprovados'],
-        'Reprovados': situacao_por_serie['Reprovados'],
+        'Risco de Reprovações': situacao_por_serie['Reprovados'],
         '% Aprovados': situacao_por_serie['%_Aprovados'].astype(str) + ' %',
-        '% Reprovados': situacao_por_serie['%_Reprovados'].astype(str) + ' %'
+        '% Risco de Reprovações': situacao_por_serie['%_Reprovados'].astype(str) + ' %'
     })
     
     # Estilizar a tabela
@@ -516,7 +516,7 @@ with st.expander("📋 Ver Dados Detalhados por Série"):
         column_config={
             'Total de Estudantes': st.column_config.NumberColumn(format='%d'),
             'Aprovados': st.column_config.NumberColumn(format='%d'),
-            'Reprovados': st.column_config.NumberColumn(format='%d')
+            'Risco de Reprovações': st.column_config.NumberColumn(format='%d')
         }
     )
 

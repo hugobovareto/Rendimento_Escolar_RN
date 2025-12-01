@@ -11,7 +11,7 @@ def carregar_dados_componentes():
     return pd.read_parquet('dados_tratados/df_componentes.parquet')
 
 # CONFIGURAÇÕES DA PÁGINA
-st.set_page_config(page_title="Aprovações e Reprovações por Componente Curricular", layout="wide")
+st.set_page_config(page_title="Aprovações e Risco de Reprovações por Componente Curricular", layout="wide")
 
 # Carregar dados se não estiverem em cache
 if 'df' not in st.session_state:
@@ -155,10 +155,10 @@ st.image("images/logos.png", width=1700)
 
 st.write("")
 
-st.title("📜 Aprovações e Reprovações por Componente Curricular")
+st.title("📜 Aprovações e Risco de Reprovações por Componente Curricular")
 
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 07/11/2025.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 28/11/2025.
 """)
 
 st.write("")
@@ -173,10 +173,10 @@ st.write("")
 
 
 # =============================================================================
-# GRÁFICO 1: PERCENTUAL DE APROVAÇÃO E REPROVAÇÃO POR COMPONENTE CURRICULAR
+# GRÁFICO 1: PERCENTUAL DE APROVAÇÃO E RISCO DE REPROVAÇÃO POR COMPONENTE CURRICULAR
 # =============================================================================
 st.markdown(
-    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovação e Reprovação por Componente Curricular</p>",
+    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovação e Risco de Reprovação por Componente Curricular</p>",
     unsafe_allow_html=True)
 
 # Filtros para Etapa e Série
@@ -240,7 +240,7 @@ else:
 
     with col2:
         taxa_reprovacao_geral = (df_componente['Reprovados'].sum() / (df_componente['Total'].sum()) * 100).round(1)
-        st.metric("Taxa de Reprovação Geral", f"{taxa_reprovacao_geral}%")
+        st.metric("Taxa de Risco de Reprovação Geral", f"{taxa_reprovacao_geral}%")
 
     # Criar gráfico de barras empilhadas
     fig_componente = go.Figure()
@@ -258,18 +258,18 @@ else:
 
     # Barra de reprovados (vermelho)
     fig_componente.add_trace(go.Bar(
-        name='❌ Reprovados',
+        name='❌ Risco de Reprovação',
         x=df_componente['COMPONENTE CURRICULAR'],
         y=df_componente['%_Reprovados'],
         marker=dict(color='#c62828'),
         text=df_componente['%_Reprovados'].astype(str) + '%',
         textposition='inside',
-        hovertemplate='<b>%{x}</b><br>Reprovados: %{y}%<br>Total: ' + df_componente['Reprovados'].astype(str) + '<extra></extra>'
+        hovertemplate='<b>%{x}</b><br>Risco de Reprovação: %{y}%<br>Total: ' + df_componente['Reprovados'].astype(str) + '<extra></extra>'
     ))
 
     # Configurar layout
     fig_componente.update_layout(
-        title=f'Percentual de Aprovação e Reprovação por Componente Curricular',
+        title=f'Percentual de Aprovação e Risco de Reprovação por Componente Curricular',
         xaxis_title='Componente Curricular',
         yaxis_title='Percentual (%)',
         barmode='stack',
@@ -313,9 +313,9 @@ else:
             'Componente Curricular': df_componente['COMPONENTE CURRICULAR'],
             'Total': df_componente['Total'],
             'Aprovados': df_componente['Aprovados'],
-            'Reprovados': df_componente['Reprovados'],
+            'Risco de Reprovação': df_componente['Reprovados'],
             '% Aprovados': df_componente['%_Aprovados'].astype(str) + ' %',
-            '% Reprovados': df_componente['%_Reprovados'].astype(str) + ' %'
+            '% Risco de Reprovação': df_componente['%_Reprovados'].astype(str) + ' %'
         })
         
         # Estilizar a tabela
@@ -326,7 +326,7 @@ else:
             column_config={
                 'Total': st.column_config.NumberColumn(format='%d'),
                 'Aprovados': st.column_config.NumberColumn(format='%d'),
-                'Reprovados': st.column_config.NumberColumn(format='%d')
+                'Risco de Reprovação': st.column_config.NumberColumn(format='%d')
             }
         )
 
@@ -336,10 +336,10 @@ st.write("")
 
 
 # =============================================================================
-# GRÁFICO 2: PERCENTUAL DE APROVAÇÃO E REPROVAÇÃO POR ANO/SÉRIE ESCOLAR 
+# GRÁFICO 2: PERCENTUAL DE APROVAÇÃO E RISCO DE REPROVAÇÃO POR ANO/SÉRIE ESCOLAR 
 # =============================================================================
 st.markdown(
-    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovação e Reprovação por Ano/Série Escolar</p>",
+    "<p style='font-size:24px; font-weight:bold;'>Percentual de Aprovação e Risco de Reprovação por Ano/Série Escolar</p>",
     unsafe_allow_html=True)
 
 # Filtro para Componente Curricular
@@ -391,7 +391,7 @@ else:
 
     with col2:
         taxa_reprovacao_geral = (df_serie['Reprovados'].sum() / (df_serie['Total'].sum()) * 100).round(1)
-        st.metric("Taxa de Reprovação Geral", f"{taxa_reprovacao_geral}%")
+        st.metric("Taxa de Risco de Reprovação Geral", f"{taxa_reprovacao_geral}%")
 
     # Criar gráfico de barras empilhadas
     fig_serie = go.Figure()
@@ -409,18 +409,18 @@ else:
 
     # Barra de reprovados (vermelho)
     fig_serie.add_trace(go.Bar(
-        name='❌ Reprovados',
+        name='❌ Risco de Reprovação',
         x=df_serie['SÉRIE'],
         y=df_serie['%_Reprovados'],
         marker=dict(color='#c62828'),
         text=df_serie['%_Reprovados'].astype(str) + '%',
         textposition='inside',
-        hovertemplate='<b>%{x}</b><br>Reprovados: %{y}%<br>Total: ' + df_serie['Reprovados'].astype(str) + '<extra></extra>'
+        hovertemplate='<b>%{x}</b><br>Risco de Reprovação: %{y}%<br>Total: ' + df_serie['Reprovados'].astype(str) + '<extra></extra>'
     ))
 
     # Configurar layout
     fig_serie.update_layout(
-        title=f'Percentual de Aprovação e Reprovação por Série - {componente_selecionado if componente_selecionado != "Todos" else "Todos os Componentes"}',
+        title=f'Percentual de Aprovação e Risco de Reprovação por Série - {componente_selecionado if componente_selecionado != "Todos" else "Todos os Componentes"}',
         xaxis_title='Série',
         yaxis_title='Percentual (%)',
         barmode='stack',
@@ -458,9 +458,9 @@ else:
             'Série': df_serie['SÉRIE'],
             'Total': df_serie['Total'],
             'Aprovados': df_serie['Aprovados'],
-            'Reprovados': df_serie['Reprovados'],
+            'Risco de Reprovação': df_serie['Reprovados'],
             '% Aprovados': df_serie['%_Aprovados'].astype(str) + ' %',
-            '% Reprovados': df_serie['%_Reprovados'].astype(str) + ' %'
+            '% Risco de Reprovação': df_serie['%_Reprovados'].astype(str) + ' %'
         })
         
         # Estilizar a tabela
@@ -471,7 +471,7 @@ else:
             column_config={
                 'Total': st.column_config.NumberColumn(format='%d'),
                 'Aprovados': st.column_config.NumberColumn(format='%d'),
-                'Reprovados': st.column_config.NumberColumn(format='%d')
+                'Risco de Reprovação': st.column_config.NumberColumn(format='%d')
             }
         )
 
