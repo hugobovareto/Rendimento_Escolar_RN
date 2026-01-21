@@ -105,15 +105,16 @@ def processar_dados_brutos():
 
     df_EF_EM_bncc['ETAPA_RESUMIDA'] = df_EF_EM_bncc['SÉRIE'].map(mapeamento_etapa)
 
-    # Criar coluna com nota final média, considerando as notas do 1º, 2º e 3º bimestres:
+    # Criar coluna com nota final média, considerando as notas do 1º, 2º, 3º e 4º bimestres:
     # (ignora os valores NaN e fazem a média somente com os valores presentes. Se só tiver 1 nota disponível, a média será essa nota)
     '''
     Se as duas colunas têm valores → média das duas.
     Se apenas uma tem valor → retorna esse valor.
     Se ambas são NaN → retorna NaN.
     '''
+
                                         ###### MODIFICAR AQUI QUANDO TIVER MAIS NOTAS LANÇADAS ######
-    df_EF_EM_bncc['MEDIA_NOTAS'] = df_EF_EM_bncc[['NOTA 1º BIMESTRE','NOTA 2º BIMESTRE', 'NOTA 3º BIMESTRE']].mean(axis=1, skipna=True)
+    df_EF_EM_bncc['MEDIA_NOTAS'] = df_EF_EM_bncc[['NOTA 1º BIMESTRE', 'NOTA 2º BIMESTRE', 'NOTA 3º BIMESTRE', 'NOTA 4º BIMESTRE']].mean(axis=1, skipna=True)
 
     # Criar uma coluna para Aprovado ou Reprovado por componente (reprovação caso a média seja menor que 6)
     # (sem nota caso os dois bimestres sejam NaN)
@@ -213,11 +214,19 @@ def processar_dados_brutos():
     # CRIAR DF_COMPONENTES
     # =============================================================================
 
-    # colunas usadas para o df_compnoentes
-    cols_componentes = ['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE','COMPONENTE CURRICULAR',
-            'STATUS','NOTA 1º BIMESTRE','NOTA 2º BIMESTRE', 'NOTA 3º BIMESTRE', 'MEDIA_NOTAS']
+    # Garantir que cada estudante seja contado apenas uma vez por componente e por série
+    dedup_cols = [
+        'CPF PESSOA',
+        'SÉRIE',
+        'COMPONENTE CURRICULAR']
+    
+    df2_componentes = df_EF_EM_bncc_censo.drop_duplicates(subset=dedup_cols)
 
-    df2_componentes = df_EF_EM_bncc_censo[cols_componentes].copy()
+    # colunas usadas para o df_componentes
+    cols_componentes = ['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE','COMPONENTE CURRICULAR',
+            'STATUS','NOTA 1º BIMESTRE','NOTA 2º BIMESTRE', 'NOTA 3º BIMESTRE', 'NOTA 4º BIMESTRE', 'MEDIA_NOTAS']
+
+    df2_componentes = df2_componentes[cols_componentes].copy()
 
     # Transformar as colunas no tipo 'categoria' para otimizar tipos de dados para memória
     grp_cols_componentes = ['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE','COMPONENTE CURRICULAR']
@@ -232,6 +241,7 @@ def processar_dados_brutos():
     df2_componentes['NOTA 1º BIMESTRE'] = pd.to_numeric(df2_componentes['NOTA 1º BIMESTRE'], errors='coerce')
     df2_componentes['NOTA 2º BIMESTRE'] = pd.to_numeric(df2_componentes['NOTA 2º BIMESTRE'], errors='coerce')
     df2_componentes['NOTA 3º BIMESTRE'] = pd.to_numeric(df2_componentes['NOTA 3º BIMESTRE'], errors='coerce')
+    df2_componentes['NOTA 4º BIMESTRE'] = pd.to_numeric(df2_componentes['NOTA 4º BIMESTRE'], errors='coerce')
     df2_componentes['MEDIA_NOTAS'] = pd.to_numeric(df2_componentes['MEDIA_NOTAS'], errors='coerce')
 
     # Agrupar e agregar para fazer o df_componentes
@@ -244,6 +254,7 @@ def processar_dados_brutos():
             NOTA_1_BIMESTRE=('NOTA 1º BIMESTRE', 'mean'),
             NOTA_2_BIMESTRE=('NOTA 2º BIMESTRE', 'mean'),
             NOTA_3_BIMESTRE=('NOTA 3º BIMESTRE', 'mean'),
+            NOTA_4_BIMESTRE=('NOTA 4º BIMESTRE', 'mean'),
             MEDIA_NOTAS=('MEDIA_NOTAS', 'mean')
         )
         .reset_index()
@@ -253,12 +264,21 @@ def processar_dados_brutos():
     # =============================================================================
     # CRIAR DF_ESTUDANTES
     # =============================================================================
+    # Garantir que cada estudante seja contado apenas uma vez por componente
+    dedup_cols = [
+        'CPF PESSOA',
+        'SÉRIE',
+        'COMPONENTE CURRICULAR'
+    ]
+    
+    df2_estudantes = df_EF_EM_bncc_censo.drop_duplicates(subset=dedup_cols)    
+    
     # 1) Colunas que vamos usar
     cols_estudantes = ['CPF PESSOA',
             'DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA',
             'ETAPA_RESUMIDA','SÉRIE','STATUS']
 
-    df2_estudantes = df_EF_EM_bncc_censo[cols_estudantes].copy()
+    df2_estudantes = df2_estudantes[cols_estudantes].copy()
 
     # 2) Tipos: transformar agrupamentos em category para economizar memória
     grp_cols_estudantes = ['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE']
@@ -277,37 +297,80 @@ def processar_dados_brutos():
         .agg(reprovacoes_aluno=('is_reprovado', 'sum'))
     )
 
-    # 5) Classificar cada aluno como Aprovado/Reprovado segundo a regra por ETAPA_RESUMIDA
-    #    Regras:
-    #      - "Ens. Fund. - Anos Finais": Reprovado se reprovacoes_aluno >= 4
-    #      - "Ensino Médio": Reprovado se reprovacoes_aluno >= 7
-    #      - caso contrário: Aprovado (fallback)
-    ef_mask = estudante_por_contexto['ETAPA_RESUMIDA'] == "Ens. Fund. - Anos Finais"
-    em_mask = estudante_por_contexto['ETAPA_RESUMIDA'] == "Ensino Médio"
+    # 5) Classificar cada aluno como Aprovado/ Aprovado em RAPP/ Reprovado segundo a regra por ETAPA_RESUMIDA
+#    Regras:
+#   Se 'ETAPA_RESUMIDA' = 'Ensino Médio': 
+    # Reprovado se reprovacoes_aluno >= 7;
+    # Aprovado se reprovacoes_aluno = 0;
+    # Se nenhuma for verdadeira, Aprovado em RAPP.
 
-    cond_reprovado = (ef_mask & (estudante_por_contexto['reprovacoes_aluno'] >= 4)) | \
-                    (em_mask & (estudante_por_contexto['reprovacoes_aluno'] >= 7))
+#   Se 'ETAPA_RESUMIDA' = 'Ens. Fund. - Anos Finais': 
+    # Reprovado se reprovacoes_aluno >= 4;
+    # Aprovado se reprovacoes_aluno = 0;
+    # Se nenhuma for verdadeira, Aprovado em RAPP.
 
-    # Criar coluna CLASSIFICACAO como uint8 (0 = Aprovado, 1 = Reprovado) para economizar memória
-    estudante_por_contexto['is_reprovado_aluno'] = cond_reprovado.astype('uint8')
+    condicoes = [
+        # Ensino Médio - Reprovado
+        (estudante_por_contexto['ETAPA_RESUMIDA'] == 'Ensino Médio') &
+        (estudante_por_contexto['reprovacoes_aluno'] >= 7),
 
-    # 6) Agregar por escola + série para contar Aprovados/Reprovados
-    school_grp = ['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE']
-    df_estudantes = (
-        estudante_por_contexto
-        .groupby(school_grp, observed=True, sort=False)
-        .agg(
-            Reprovados=('is_reprovado_aluno', 'sum'),
-            Total_Alunos=('CPF PESSOA', 'count')  # opcional, útil para checagens
-        )
-        .reset_index()
+        # Ensino Médio - Aprovado
+        (estudante_por_contexto['ETAPA_RESUMIDA'] == 'Ensino Médio') &
+        (estudante_por_contexto['reprovacoes_aluno'] == 0),
+
+        # Ens. Fund. - Anos Finais - Reprovado
+        (estudante_por_contexto['ETAPA_RESUMIDA'] == 'Ens. Fund. - Anos Finais') &
+        (estudante_por_contexto['reprovacoes_aluno'] >= 4),
+
+        # Ens. Fund. - Anos Finais - Aprovado
+        (estudante_por_contexto['ETAPA_RESUMIDA'] == 'Ens. Fund. - Anos Finais') &
+        (estudante_por_contexto['reprovacoes_aluno'] == 0)
+    ]
+
+    resultados = [
+        'Reprovado',
+        'Aprovado',
+        'Reprovado',
+        'Aprovado'
+    ]
+
+    estudante_por_contexto['SITUAÇÃO'] = np.select(
+        condicoes,
+        resultados,
+        default='Aprovado em RAPP'
     )
 
-    # 7) Calcular Aprovados a partir do total
-    df_estudantes['Aprovados'] = df_estudantes['Total_Alunos'] - df_estudantes['Reprovados']
+    
+    # Criar colunas binárias para Aprovados, Reprovados e Aprovados em RAPP
+    estudante_por_contexto['Aprovados'] = (estudante_por_contexto['SITUAÇÃO'] == 'Aprovado').astype('uint16')
+    estudante_por_contexto['Reprovados'] = (estudante_por_contexto['SITUAÇÃO'] == 'Reprovado').astype('uint16')
+    estudante_por_contexto['Aprovados_RAPP'] = (estudante_por_contexto['SITUAÇÃO'] == 'Aprovado em RAPP').astype('uint16')
+    
+    # Colunas de agrupamento
+    grp_cols = [
+        'DIREC',
+        'MUNICÍPIO',
+        'ESCOLA',
+        'INEP ESCOLA',
+        'ETAPA_RESUMIDA',
+        'SÉRIE'
+    ]
+
+    # Agregar por escola + série para contar Aprovados/Reprovados/Aprovados_RAPP
+    df_estudantes = (
+        estudante_por_contexto
+        .groupby(grp_cols, as_index=False, observed=True)
+        .agg(
+            Aprovados=('Aprovados', 'sum'),
+            Reprovados=('Reprovados', 'sum'),
+            Aprovados_RAPP=('Aprovados_RAPP', 'sum'),
+            Total_Alunos=('CPF PESSOA', 'nunique')
+        )
+    )
+
 
     # 8) Reordenar colunas com a ordem que você pediu
-    df_estudantes = df_estudantes[['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE','Aprovados','Reprovados','Total_Alunos']]
+    df_estudantes = df_estudantes[['DIREC','MUNICÍPIO','ESCOLA','INEP ESCOLA','ETAPA_RESUMIDA','SÉRIE','Aprovados','Reprovados', 'Aprovados_RAPP','Total_Alunos']]
 
 
     # Salvar os 2 dataframes 
@@ -323,7 +386,5 @@ def processar_dados_brutos():
 # Executar o código acima se rodado diretamente e não como importação em outro módulo
 if __name__ == "__main__":
     df_estudantes, df_componentes = processar_dados_brutos()
-
-
 
 

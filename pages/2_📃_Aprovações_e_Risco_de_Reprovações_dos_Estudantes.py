@@ -133,17 +133,27 @@ st.write("")
 st.title("📃 Aprovações e Risco de Reprovações dos Estudantes")
 
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 05/01/2026.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 19/01/2026.
 """)
 
 st.write("")
 
 st.markdown("""
-            O estudante é considerado em risco de reprovação se possui média inferior a 6.0 de acordo com a etapa de ensino:
-- **Ensino Fundamental:** 4 ou mais componentes curriculares com nota inferior a 6.0.
-- **Ensino Médio:** 7 ou mais componentes curriculares com nota inferior a 6.0.
-            \n São consideradas as notas para o 1º, 2º e 3º bimestres de 2025. Caso alguma nota ainda não tenho sido lançada, a média é feita considerando somente as notas disponíveis.
-            """)
+O estudante é considerado em risco de reprovação se possui média inferior a 6.0. De acordo com a etapa de ensino, o critério para classificação é o seguinte:
+- **Ensino Fundamental:**
+    - **Aprovado:** aprovado em todos os componentes curriculares.
+    - **Aprovado em RAPP:** até 3 componentes curriculares com nota inferior a 6.0.
+    - **Reprovado:** 4 ou mais componentes curriculares com nota inferior a 6.0.
+
+<br>                
+
+- **Ensino Médio:**
+    - **Aprovado:** aprovado em todos os componentes curriculares.
+    - **Aprovado em RAPP:** até 6 componentes curriculares com nota inferior a 6.0.
+    - **Reprovado:** 7 ou mais componentes curriculares com nota inferior a 6.0.
+                           
+\n São consideradas as notas para o 1º, 2º, 3º e 4º bimestres de 2025. Caso alguma nota ainda não tenho sido lançada, a média é feita considerando somente as notas disponíveis.
+""", unsafe_allow_html=True)
 
 st.write("")
 
@@ -195,11 +205,13 @@ else:
     
     # CALCULAR TOTAIS DIRETAMENTE DO DATAFRAME AGRUPADO
     total_aprovados = df_filtrado_estudante['Aprovados'].sum()
+    total_aprovados_RAPP = df_filtrado_estudante['Aprovados_RAPP'].sum()
     total_reprovados = df_filtrado_estudante['Reprovados'].sum()
-    total_estudantes = total_aprovados + total_reprovados
+    total_estudantes = total_aprovados + total_reprovados + total_aprovados_RAPP
 
     # Calcular percentuais
     percentual_aprovados = round(total_aprovados / total_estudantes * 100, 2) if total_estudantes > 0 else 0
+    percentual_aprovados_RAPP = round(total_aprovados_RAPP / total_estudantes * 100, 2) if total_estudantes > 0 else 0
     percentual_reprovados = round(total_reprovados / total_estudantes * 100, 2) if total_estudantes > 0 else 0
 
     # Mostrar métricas
@@ -212,19 +224,20 @@ else:
         st.metric("Aprovados", f"{total_aprovados:,}")
 
     with col3:
-        st.metric("Risco de Reprovação", f"{total_reprovados:,}")
+        st.metric("Aprovados em RAPP", f"{total_aprovados_RAPP:,}")
 
     with col4:
-        st.metric("Taxa de Aprovação", f"{percentual_aprovados}%")
+        st.metric("Risco de Reprovação", f"{total_reprovados:,}")
+
 
     # Criar gráfico de pizza
     fig_pizza = go.Figure()
 
     fig_pizza.add_trace(go.Pie(
-        labels=['Aprovados', 'Risco de Reprovação'],
-        values=[total_aprovados, total_reprovados],
+        labels=['Aprovados', 'Aprovados em RAPP', 'Risco de Reprovação'],
+        values=[total_aprovados, total_aprovados_RAPP, total_reprovados],
         hole=0.4,
-        marker=dict(colors=['#2e7d32', '#c62828']),
+        marker=dict(colors=['#2e7d32', '#1976d2', '#c62828']),
         textinfo='percent+label+value',
         hovertemplate='<b>%{label}</b><br>Quantidade: %{value}<br>Percentual: %{percent}<extra></extra>'
     ))
@@ -300,12 +313,14 @@ if serie_selecionada != 'Todas':
 # Agrupar por DIREC e calcular totais
 situacao_por_direc = df_filtrado_direc.groupby('DIREC').agg({
     'Aprovados': 'sum',
+    'Aprovados_RAPP': 'sum',
     'Reprovados': 'sum'
 }).reset_index()
 
 # Calcular totais e percentuais
-situacao_por_direc['Total_Estudantes'] = situacao_por_direc['Aprovados'] + situacao_por_direc['Reprovados']
+situacao_por_direc['Total_Estudantes'] = situacao_por_direc['Aprovados'] + situacao_por_direc['Reprovados'] + situacao_por_direc['Aprovados_RAPP']
 situacao_por_direc['%_Aprovados'] = (situacao_por_direc['Aprovados'] / situacao_por_direc['Total_Estudantes'] * 100).round(1)
+situacao_por_direc['%_Aprovados_RAPP'] = (situacao_por_direc['Aprovados_RAPP'] / situacao_por_direc['Total_Estudantes'] * 100).round(1)
 situacao_por_direc['%_Reprovados'] = (situacao_por_direc['Reprovados'] / situacao_por_direc['Total_Estudantes'] * 100).round(1)
 
 # Ordenar as DIRECs em ordem decrescente de reprovações (maiores reprovações primeiro)
@@ -323,7 +338,7 @@ else:
 
     # Barra de aprovados (verde)
     fig_direc.add_trace(go.Bar(
-        name='✅ Aprovados',
+        name='Aprovados',
         x=situacao_por_direc['DIREC_Truncada'],
         y=situacao_por_direc['%_Aprovados'],
         marker=dict(color='#2e7d32'),
@@ -333,9 +348,21 @@ else:
         customdata=situacao_por_direc['DIREC']
     ))
 
+    # Barra de aprovados em RAPP (azul)
+    fig_direc.add_trace(go.Bar(
+        name='Aprovados em RAPP',
+        x=situacao_por_direc['DIREC_Truncada'],
+        y=situacao_por_direc['%_Aprovados_RAPP'],
+        marker=dict(color='#1976d2'),
+        text=situacao_por_direc['%_Aprovados_RAPP'].astype(str) + '%',
+        textposition='inside',
+        hovertemplate='<b>%{customdata}</b><br>Aprovados em RAPP: %{y}%<br>Total: ' + situacao_por_direc['Aprovados_RAPP'].astype(str) + '<extra></extra>',
+        customdata=situacao_por_direc['DIREC']
+    ))
+
     # Barra de reprovados (vermelho)
     fig_direc.add_trace(go.Bar(
-        name='❌ Risco de Reprovação',
+        name='Risco de Reprovação',
         x=situacao_por_direc['DIREC_Truncada'],
         y=situacao_por_direc['%_Reprovados'],
         marker=dict(color='#c62828'),
@@ -384,8 +411,10 @@ else:
             'DIREC': situacao_por_direc['DIREC'],
             'Total de Estudantes': situacao_por_direc['Total_Estudantes'],
             'Aprovados': situacao_por_direc['Aprovados'],
+            'Aprovados em RAPP': situacao_por_direc['Aprovados_RAPP'],
             'Risco de Reprovação': situacao_por_direc['Reprovados'],
             '% Aprovados': situacao_por_direc['%_Aprovados'].astype(str) + ' %',
+            '% Aprovados em RAPP': situacao_por_direc['%_Aprovados_RAPP'].astype(str) + ' %',
             '% Risco de Reprovação': situacao_por_direc['%_Reprovados'].astype(str) + ' %'
         })
         
@@ -397,6 +426,7 @@ else:
             column_config={
                 'Total de Estudantes': st.column_config.NumberColumn(format='%d'),
                 'Aprovados': st.column_config.NumberColumn(format='%d'),
+                'Aprovados em RAPP': st.column_config.NumberColumn(format='%d'),
                 'Risco de Reprovação': st.column_config.NumberColumn(format='%d')
             }
         )
@@ -425,11 +455,13 @@ st.markdown(
 # Agrupar por Série e calcular totais
 situacao_por_serie = df_filtered.groupby('SÉRIE').agg({
     'Aprovados': 'sum',
+    'Aprovados_RAPP': 'sum',
     'Reprovados': 'sum'
 }).reset_index()
 
 # Calcular totais e percentuais
-situacao_por_serie['Total_Estudantes'] = situacao_por_serie['Aprovados'] + situacao_por_serie['Reprovados']
+situacao_por_serie['Total_Estudantes'] = situacao_por_serie['Aprovados'] + situacao_por_serie['Reprovados'] + situacao_por_serie['Aprovados_RAPP']
+situacao_por_serie['%_Aprovados_RAPP'] = (situacao_por_serie['Aprovados_RAPP'] / situacao_por_serie['Total_Estudantes'] * 100).round(1)
 situacao_por_serie['%_Aprovados'] = (situacao_por_serie['Aprovados'] / situacao_por_serie['Total_Estudantes'] * 100).round(1)
 situacao_por_serie['%_Reprovados'] = (situacao_por_serie['Reprovados'] / situacao_por_serie['Total_Estudantes'] * 100).round(1)
 
@@ -449,7 +481,7 @@ fig_serie = go.Figure()
 
 # Barra de aprovados (verde)
 fig_serie.add_trace(go.Bar(
-    name='✅ Aprovados',
+    name='Aprovados',
     x=situacao_por_serie['SÉRIE'],
     y=situacao_por_serie['%_Aprovados'],
     marker=dict(color='#2e7d32'),
@@ -458,9 +490,19 @@ fig_serie.add_trace(go.Bar(
     hovertemplate='<b>%{x}</b><br>Aprovados: %{y}%<br>Total: ' + situacao_por_serie['Aprovados'].astype(str) + '<extra></extra>'
 ))
 
+fig_serie.add_trace(go.Bar(
+    name='Aprovados em RAPP',
+    x=situacao_por_serie['SÉRIE'],
+    y=situacao_por_serie['%_Aprovados_RAPP'],
+    marker=dict(color='#1976d2'),
+    text=situacao_por_serie['%_Aprovados_RAPP'].astype(str) + '%',
+    textposition='inside',
+    hovertemplate='<b>%{x}</b><br>Aprovados em RAPP: %{y}%<br>Total: ' + situacao_por_serie['Aprovados_RAPP'].astype(str) + '<extra></extra>'
+))
+
 # Barra de reprovados (vermelho)
 fig_serie.add_trace(go.Bar(
-    name='❌ Risco de Reprovação',
+    name='Risco de Reprovação',
     x=situacao_por_serie['SÉRIE'],
     y=situacao_por_serie['%_Reprovados'],
     marker=dict(color='#c62828'),
@@ -503,8 +545,10 @@ with st.expander("📋 Ver Dados Detalhados por Série"):
         'Série': situacao_por_serie['SÉRIE'],
         'Total de Estudantes': situacao_por_serie['Total_Estudantes'],
         'Aprovados': situacao_por_serie['Aprovados'],
+        'Aprovados em RAPP': situacao_por_serie['Aprovados_RAPP'],
         'Risco de Reprovações': situacao_por_serie['Reprovados'],
         '% Aprovados': situacao_por_serie['%_Aprovados'].astype(str) + ' %',
+        '% Aprovados em RAPP': situacao_por_serie['%_Aprovados_RAPP'].astype(str) + ' %',
         '% Risco de Reprovações': situacao_por_serie['%_Reprovados'].astype(str) + ' %'
     })
     
@@ -516,6 +560,7 @@ with st.expander("📋 Ver Dados Detalhados por Série"):
         column_config={
             'Total de Estudantes': st.column_config.NumberColumn(format='%d'),
             'Aprovados': st.column_config.NumberColumn(format='%d'),
+            'Aprovados em RAPP': st.column_config.NumberColumn(format='%d'),
             'Risco de Reprovações': st.column_config.NumberColumn(format='%d')
         }
     )
