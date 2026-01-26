@@ -133,7 +133,7 @@ st.write("")
 st.title("📃 Aprovações e Risco de Reprovações dos Estudantes")
 
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 19/01/2026.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 26/01/2026.
 """)
 
 st.write("")
