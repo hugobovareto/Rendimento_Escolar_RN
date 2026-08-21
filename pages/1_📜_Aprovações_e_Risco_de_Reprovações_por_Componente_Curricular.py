@@ -537,13 +537,13 @@ else:
         media_geral_2bim = df_medias['NOTA_2_BIMESTRE'].mean().round(2)
         st.metric("Média 2º Bimestre", f"{media_geral_2bim:.2f}")
 
-    with col3:
-        media_geral_3bim = df_medias['NOTA_3_BIMESTRE'].mean().round(2)
-        st.metric("Média 3º Bimestre", f"{media_geral_3bim:.2f}")
+    # with col3:
+        # media_geral_3bim = df_medias['NOTA_3_BIMESTRE'].mean().round(2)
+        # st.metric("Média 3º Bimestre", f"{media_geral_3bim:.2f}")
 
-    with col4:
-        media_geral_4bim = df_medias['NOTA_4_BIMESTRE'].mean().round(2)
-        st.metric("Média 4º Bimestre", f"{media_geral_4bim:.2f}")
+    # with col4:
+        # media_geral_4bim = df_medias['NOTA_4_BIMESTRE'].mean().round(2)
+        # st.metric("Média 4º Bimestre", f"{media_geral_4bim:.2f}")
 
     with col5:
         media_geral_final = df_medias['MEDIA_NOTAS'].mean().round(2)
@@ -573,25 +573,25 @@ else:
         hovertemplate='<b>%{x}</b><br>2º Bimestre: %{y}<extra></extra>'
     ))
 
-    fig_medias.add_trace(go.Bar(
-        name='3º BIMESTRE',
-        x=df_medias['COMPONENTE CURRICULAR'],
-        y=df_medias['NOTA_3_BIMESTRE'],
-        marker_color='#cc8a42',  # Marrom escuro
-        text=df_medias['NOTA_3_BIMESTRE'].astype(str),
-        textposition='auto',
-        hovertemplate='<b>%{x}</b><br>3º Bimestre: %{y}<extra></extra>'
-    ))
+    # fig_medias.add_trace(go.Bar(
+        # name='3º BIMESTRE',
+        # x=df_medias['COMPONENTE CURRICULAR'],
+        # y=df_medias['NOTA_3_BIMESTRE'],
+        # marker_color='#cc8a42',  # Marrom escuro
+        # text=df_medias['NOTA_3_BIMESTRE'].astype(str),
+        # textposition='auto',
+        # hovertemplate='<b>%{x}</b><br>3º Bimestre: %{y}<extra></extra>'
+    # ))
 
-    fig_medias.add_trace(go.Bar(
-        name='4º BIMESTRE',
-        x=df_medias['COMPONENTE CURRICULAR'],
-        y=df_medias['NOTA_4_BIMESTRE'],
-        marker_color='#b7794f',  # Marrom escuro
-        text=df_medias['NOTA_4_BIMESTRE'].astype(str),
-        textposition='auto',
-        hovertemplate='<b>%{x}</b><br>4º Bimestre: %{y}<extra></extra>'
-    ))
+    # fig_medias.add_trace(go.Bar(
+        # name='4º BIMESTRE',
+        # x=df_medias['COMPONENTE CURRICULAR'],
+        # y=df_medias['NOTA_4_BIMESTRE'],
+        # marker_color='#b7794f',  # Marrom escuro
+        # text=df_medias['NOTA_4_BIMESTRE'].astype(str),
+        # textposition='auto',
+        # hovertemplate='<b>%{x}</b><br>4º Bimestre: %{y}<extra></extra>'
+    # ))
 
 
     fig_medias.add_trace(go.Bar(
@@ -650,8 +650,8 @@ else:
             'Componente Curricular': df_medias['COMPONENTE CURRICULAR'],
             'Média 1º Bimestre': df_medias['NOTA_1_BIMESTRE'],
             'Média 2º Bimestre': df_medias['NOTA_2_BIMESTRE'],
-            'Média 3º Bimestre': df_medias['NOTA_3_BIMESTRE'],
-            'Média 4º Bimestre': df_medias['NOTA_4_BIMESTRE'],
+            # 'Média 3º Bimestre': df_medias['NOTA_3_BIMESTRE'],
+            # 'Média 4º Bimestre': df_medias['NOTA_4_BIMESTRE'],
             'Média Geral': df_medias['MEDIA_NOTAS']
         })
         
@@ -663,8 +663,8 @@ else:
             column_config={
                 'Média 1º Bimestre': st.column_config.NumberColumn(format='%.2f'),
                 'Média 2º Bimestre': st.column_config.NumberColumn(format='%.2f'),
-                'Média 3º Bimestre': st.column_config.NumberColumn(format='%.2f'),
-                'Média 4º Bimestre': st.column_config.NumberColumn(format='%.2f'),
+                # 'Média 3º Bimestre': st.column_config.NumberColumn(format='%.2f'),
+                # 'Média 4º Bimestre': st.column_config.NumberColumn(format='%.2f'),
                 'Média Geral': st.column_config.NumberColumn(format='%.2f')
             }
         )
@@ -745,13 +745,13 @@ else:
         media_geral_2bim = df_medias_direc['NOTA_2_BIMESTRE'].mean().round(2)
         st.metric("Média 2º Bimestre", f"{media_geral_2bim:.2f}")
 
-    with col3:
-        media_geral_3bim = df_medias_direc['NOTA_3_BIMESTRE'].mean().round(2)
-        st.metric("Média 3º Bimestre", f"{media_geral_3bim:.2f}")
+    # with col3:
+        # media_geral_3bim = df_medias_direc['NOTA_3_BIMESTRE'].mean().round(2)
+        # st.metric("Média 3º Bimestre", f"{media_geral_3bim:.2f}")
 
-    with col4:
-        media_geral_4bim = df_medias_direc['NOTA_4_BIMESTRE'].mean().round(2)
-        st.metric("Média 4º Bimestre", f"{media_geral_4bim:.2f}")
+    # with col4:
+        # media_geral_4bim = df_medias_direc['NOTA_4_BIMESTRE'].mean().round(2)
+        # st.metric("Média 4º Bimestre", f"{media_geral_4bim:.2f}")
 
     with col5:
         media_geral_final = df_medias_direc['MEDIA_NOTAS'].mean().round(2)
@@ -783,27 +783,27 @@ else:
         hovertemplate='<b>%{customdata}</b><br>2º Bimestre: %{y}<extra></extra>'
     ))
 
-    fig_medias_direc.add_trace(go.Bar(
-        name='3º BIMESTRE',
-        x=df_medias_direc['DIREC_Truncada'],
-        y=df_medias_direc['NOTA_3_BIMESTRE'],
-        marker_color='#cc8a42',  # Marrom escuro
-        text=df_medias_direc['NOTA_3_BIMESTRE'].astype(str),
-        textposition='auto',
-        customdata=df_medias_direc['DIREC'],  # Passamos a coluna com o nome completo
-        hovertemplate='<b>%{customdata}</b><br>3º Bimestre: %{y}<extra></extra>'
-    ))
+    # fig_medias_direc.add_trace(go.Bar(
+        # name='3º BIMESTRE',
+        # x=df_medias_direc['DIREC_Truncada'],
+        # y=df_medias_direc['NOTA_3_BIMESTRE'],
+        # marker_color='#cc8a42',  # Marrom escuro
+        # text=df_medias_direc['NOTA_3_BIMESTRE'].astype(str),
+        # textposition='auto',
+        # customdata=df_medias_direc['DIREC'],  # Passamos a coluna com o nome completo
+        # hovertemplate='<b>%{customdata}</b><br>3º Bimestre: %{y}<extra></extra>'
+    # ))
 
-    fig_medias_direc.add_trace(go.Bar(
-        name='4º BIMESTRE',
-        x=df_medias_direc['DIREC_Truncada'],
-        y=df_medias_direc['NOTA_4_BIMESTRE'],
-        marker_color='#b7794f',  # Marrom escuro
-        text=df_medias_direc['NOTA_4_BIMESTRE'].astype(str),
-        textposition='auto',
-        customdata=df_medias_direc['DIREC'],  # Passamos a coluna com o nome completo
-        hovertemplate='<b>%{customdata}</b><br>4º Bimestre: %{y}<extra></extra>'
-    ))
+    # fig_medias_direc.add_trace(go.Bar(
+        # name='4º BIMESTRE',
+        # x=df_medias_direc['DIREC_Truncada'],
+        # y=df_medias_direc['NOTA_4_BIMESTRE'],
+        # marker_color='#b7794f',  # Marrom escuro
+        # text=df_medias_direc['NOTA_4_BIMESTRE'].astype(str),
+        # textposition='auto',
+        # customdata=df_medias_direc['DIREC'],  # Passamos a coluna com o nome completo
+        # hovertemplate='<b>%{customdata}</b><br>4º Bimestre: %{y}<extra></extra>'
+    # ))
 
 
     fig_medias_direc.add_trace(go.Bar(
@@ -868,8 +868,8 @@ else:
             'DIREC': df_medias_direc['DIREC'],
             'Média 1º Bimestre': df_medias_direc['NOTA_1_BIMESTRE'],
             'Média 2º Bimestre': df_medias_direc['NOTA_2_BIMESTRE'],
-            'Média 3º Bimestre': df_medias_direc['NOTA_3_BIMESTRE'],
-            'Média 4º Bimestre': df_medias_direc['NOTA_4_BIMESTRE'],
+            # 'Média 3º Bimestre': df_medias_direc['NOTA_3_BIMESTRE'],
+            # 'Média 4º Bimestre': df_medias_direc['NOTA_4_BIMESTRE'],
             'Média Geral': df_medias_direc['MEDIA_NOTAS']
         })
         
@@ -881,8 +881,8 @@ else:
             column_config={
                 'Média 1º Bimestre': st.column_config.NumberColumn(format='%.2f'),
                 'Média 2º Bimestre': st.column_config.NumberColumn(format='%.2f'),
-                'Média 3º Bimestre': st.column_config.NumberColumn(format='%.2f'),
-                'Média 4º Bimestre': st.column_config.NumberColumn(format='%.2f'),
+                # 'Média 3º Bimestre': st.column_config.NumberColumn(format='%.2f'),
+                # 'Média 4º Bimestre': st.column_config.NumberColumn(format='%.2f'),
                 'Média Geral': st.column_config.NumberColumn(format='%.2f')
             }
         )
