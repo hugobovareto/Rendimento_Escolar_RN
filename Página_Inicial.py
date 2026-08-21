@@ -134,18 +134,20 @@ if st.sidebar.button("🔄 Limpar Todos os Filtros"):
 
 # CONFIGURAÇÕES DA PÁGINA
 # Imagem do cabeçalho
-st.image("images/logos.png", width=1700)
+left_co, cent_co,last_co = st.columns(3)
+with cent_co:
+    st.image("images/LOGO SEEC 2o SEMESTRE.1.png", width=400)
 
 st.title("🎓 Rendimento Escolar - Rede Estadual RN")
 
 st.markdown("""
-            Esta aplicação apresenta informações sobre a aprovação, risco de reprovação e rendimento escolar dos estudantes considerando as notas já lançadas para o  1º, 2º, 3º e 4º bimestres de 2025.
+            Esta aplicação apresenta informações sobre a aprovação, risco de reprovação e rendimento escolar dos estudantes considerando as notas já lançadas para o  1º e 2º bimestres de 2026.
             \n Os dados são dos estudantes dos **Anos Finais do Ensino Fundamental e do Ensino Médio**, somente para os **componentes curriculares que fazem parte da Base Nacional Comum Curricular (BNCC)**.
             """)
 
 st.write("")
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 26/01/2026.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 07/08/2026.
 """)
 
 st.write("")

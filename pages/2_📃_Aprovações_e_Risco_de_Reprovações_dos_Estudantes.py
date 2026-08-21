@@ -126,14 +126,16 @@ if st.sidebar.button("🔄 Limpar Todos os Filtros"):
 # CONFIGURAÇÕES DA PÁGINA
                                                     # 3. Aprovação e Risco de Reprovação por estudante
 # Imagem do cabeçalho
-st.image("images/logos.png", width=1700)
+left_co, cent_co,last_co = st.columns(3)
+with cent_co:
+    st.image("images/LOGO SEEC 2o SEMESTRE.1.png", width=400)
 
 st.write("")
 
 st.title("📃 Aprovações e Risco de Reprovações dos Estudantes")
 
 st.markdown("""
-**⏱️ Última atualização**:  dados extraídos do SIGEduc em 26/01/2026.
+**⏱️ Última atualização**:  dados extraídos do SIGEduc em 07/08/2026.
 """)
 
 st.write("")
@@ -152,7 +154,7 @@ O estudante é considerado em risco de reprovação se possui média inferior a 
     - **Aprovado em RAPP:** até 6 componentes curriculares com nota inferior a 6.0.
     - **Reprovado:** 7 ou mais componentes curriculares com nota inferior a 6.0.
                            
-\n São consideradas as notas para o 1º, 2º, 3º e 4º bimestres de 2025. Caso alguma nota ainda não tenho sido lançada, a média é feita considerando somente as notas disponíveis.
+\n São consideradas as notas para o 1º e 2º bimestres de 2026. Caso alguma nota ainda não tenho sido lançada, a média é feita considerando somente as notas disponíveis.
 """, unsafe_allow_html=True)
 
 st.write("")

@@ -9,7 +9,7 @@ warnings.filterwarnings('ignore')
 
 def processar_dados_brutos():
     # caminho da pasta onde estão os arquivos
-    pasta = r"C:\Users\hugob\Downloads\Notas"
+    pasta = r"C:\Users\hugob\Downloads\Notas\2tri 2026"
 
     # lista todos os arquivos .xlsx da pasta
     arquivos = glob.glob(os.path.join(pasta, "*.xlsx"))
@@ -105,7 +105,7 @@ def processar_dados_brutos():
 
     df_EF_EM_bncc['ETAPA_RESUMIDA'] = df_EF_EM_bncc['SÉRIE'].map(mapeamento_etapa)
 
-    # Criar coluna com nota final média, considerando as notas do 1º, 2º, 3º e 4º bimestres:
+    # Criar coluna com nota final média, considerando as notas do 1º e 2º bimestres:
     # (ignora os valores NaN e fazem a média somente com os valores presentes. Se só tiver 1 nota disponível, a média será essa nota)
     '''
     Se as duas colunas têm valores → média das duas.
@@ -114,7 +114,7 @@ def processar_dados_brutos():
     '''
 
                                         ###### MODIFICAR AQUI QUANDO TIVER MAIS NOTAS LANÇADAS ######
-    df_EF_EM_bncc['MEDIA_NOTAS'] = df_EF_EM_bncc[['NOTA 1º BIMESTRE', 'NOTA 2º BIMESTRE', 'NOTA 3º BIMESTRE', 'NOTA 4º BIMESTRE']].mean(axis=1, skipna=True)
+    df_EF_EM_bncc['MEDIA_NOTAS'] = df_EF_EM_bncc[['NOTA 1º BIMESTRE', 'NOTA 2º BIMESTRE']].mean(axis=1, skipna=True)
 
     # Criar uma coluna para Aprovado ou Reprovado por componente (reprovação caso a média seja menor que 6)
     # (sem nota caso os dois bimestres sejam NaN)
@@ -200,15 +200,18 @@ def processar_dados_brutos():
     df_EF_EM_bncc = otimizar_tipos(df_EF_EM_bncc)
 
 
+    # Trocar o nome do df só para usar isso enquanto não tem dados do censo
+    df_EF_EM_bncc_censo = df_EF_EM_bncc.copy()
+
     # Filtrar linhas somente com os CPFs na base dados que foi enviada para o Censo Escolar no dia 28/05
     # Ler o arquivo enviado para o Censo Escolar em 28/05 (em Excel)
-    df_censo = pd.read_excel(r"C:\Users\hugob\Downloads\DADOS EDUCACENSO FINAL_RETIFICADO.xlsx")
+    # df_censo = pd.read_excel(r"C:\Users\hugob\Downloads\DADOS EDUCACENSO FINAL_RETIFICADO.xlsx")
 
     # Criar uma lista dos CPFs do Excel (Censo 28/05) (garantindo que sejam strings e sem espaços)
-    cpf_lista = df_censo["CPF"].astype(str).str.strip().unique()
+    # cpf_lista = df_censo["CPF"].astype(str).str.strip().unique()
 
     # Filtrar o df_EF_EM_bncc mantendo apenas linhas cujo CPF PESSOA esteja na lista
-    df_EF_EM_bncc_censo = df_EF_EM_bncc[df_EF_EM_bncc["CPF PESSOA"].astype(str).isin(cpf_lista)]
+    # df_EF_EM_bncc_censo = df_EF_EM_bncc[df_EF_EM_bncc["CPF PESSOA"].astype(str).isin(cpf_lista)]
     
     # =============================================================================
     # CRIAR DF_COMPONENTES
