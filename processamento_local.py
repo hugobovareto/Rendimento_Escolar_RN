@@ -9,7 +9,7 @@ warnings.filterwarnings('ignore')
 
 def processar_dados_brutos():
     # caminho da pasta onde estão os arquivos
-    pasta = r"C:\Users\hugob\Downloads\Notas\2tri 2026"
+    pasta = r"C:\Users\hugob\Downloads\Notas"
 
     # lista todos os arquivos .xlsx da pasta
     arquivos = glob.glob(os.path.join(pasta, "*.xlsx"))
